@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Class Hierarchy Visualizer</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2rem;
+        }
+        
+        .file-upload {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        
+        .visualization-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .svg-container {
+            width: 100%;
+            overflow: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        
+        .node-box {
+            fill: white;
+            stroke: #667eea;
+            stroke-width: 2;
+            rx: 6;
+        }
+        
+        .node-label {
+            fill: #333;
+            font-size: 14px;
+            font-weight: 500;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+        
+        .link {
+            fill: none;
+            stroke: #764ba2;
+            stroke-width: 2;
+            marker-end: url(#arrowhead);
+        }
+        
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            border-radius: 6px;
+            padding: 1rem;
+            color: #c33;
+            margin-top: 1rem;
+        }
+        
+        .info-message {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 6px;
+            padding: 1rem;
+            color: #0066cc;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        function SemanticHierarchyVisualizer() {
+            const [file, setFile] = useState(null);
+            const [hierarchyData, setHierarchyData] = useState(null);
+            const [error, setError] = useState(null);
+            const svgRef = useRef(null);
+
+            const handleFileUpload = (event) => {
+                const uploadedFile = event.target.files[0];
+                if (uploadedFile) {
+                    setFile(uploadedFile);
+                    setError(null);
+                    parseExcelFile(uploadedFile);
+                }
+            };
+
+            const parseExcelFile = (file) => {
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                        
+                        processHierarchyData(jsonData);
+                    } catch (err) {
+                        setError('Error parsing Excel file: ' + err.message);
+                    }
+                };
+                
+                reader.onerror = () => {
+                    setError('Error reading file');
+                };
+                
+                reader.readAsArrayBuffer(file);
+            };
+
+            const processHierarchyData = (data) => {
+                if (!data || data.length === 0) {
+                    setError('No data found in the spreadsheet');
+                    return;
+                }
+
+                // Build a map of label to node
+                const nodeMap = new Map();
+                const nodes = [];
+
+                data.forEach(row => {
+                    if (row.Label) {
+                        const node = {
+                            id: row.ID || row.Label,
+                            label: row.Label,
+                            parent: row.Parent || null,
+                            children: []
+                        };
+                        nodeMap.set(row.Label, node);
+                        nodes.push(node);
+                    }
+                });
+
+                // Build parent-child relationships
+                nodes.forEach(node => {
+                    if (node.parent && nodeMap.has(node.parent)) {
+                        const parentNode = nodeMap.get(node.parent);
+                        parentNode.children.push(node);
+                    }
+                });
+
+                // Find root nodes (nodes without parents or parents not in dataset)
+                const roots = nodes.filter(node => 
+                    !node.parent || !nodeMap.has(node.parent)
+                );
+
+                if (roots.length === 0) {
+                    setError('No root nodes found in hierarchy');
+                    return;
+                }
+
+                // Create a single root if multiple roots exist
+                let hierarchyRoot;
+                if (roots.length === 1) {
+                    hierarchyRoot = roots[0];
+                } else {
+                    hierarchyRoot = {
+                        id: 'root',
+                        label: 'Root',
+                        parent: null,
+                        children: roots
+                    };
+                }
+
+                setHierarchyData(hierarchyRoot);
+            };
+
+            useEffect(() => {
+                if (hierarchyData && svgRef.current) {
+                    renderVisualization();
+                }
+            }, [hierarchyData]);
+
+            const renderVisualization = () => {
+                const container = svgRef.current;
+                container.innerHTML = '';
+
+                const width = 1200;
+                const height = 800;
+                const nodeWidth = 150;
+                const nodeHeight = 50;
+                const levelHeight = 120;
+
+                const svg = d3.select(container)
+                    .append('svg')
+                    .attr('width', width)
+                    .attr('height', height)
+                    .attr('id', 'hierarchy-svg');
+
+                // Define arrowhead marker
+                svg.append('defs')
+                    .append('marker')
+                    .attr('id', 'arrowhead')
+                    .attr('viewBox', '0 0 10 10')
+                    .attr('refX', 8)
+                    .attr('refY', 5)
+                    .attr('markerWidth', 6)
+                    .attr('markerHeight', 6)
+                    .attr('orient', 'auto')
+                    .append('path')
+                    .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+                    .attr('fill', '#764ba2');
+
+                // Create hierarchy layout
+                const root = d3.hierarchy(hierarchyData);
+                const treeLayout = d3.tree()
+                    .size([width - 200, height - 200])
+                    .separation((a, b) => (a.parent === b.parent ? 1.5 : 2));
+
+                treeLayout(root);
+
+                // Draw links
+                const links = svg.append('g')
+                    .selectAll('path')
+                    .data(root.links())
+                    .enter()
+                    .append('path')
+                    .attr('class', 'link')
+                    .attr('d', d => {
+                        return `M ${d.source.x + 100},${d.source.y + 100 + nodeHeight/2}
+                                L ${d.source.x + 100},${d.target.y + 100 - nodeHeight/2 - 10}
+                                L ${d.target.x + 100},${d.target.y + 100 - nodeHeight/2 - 10}
+                                L ${d.target.x + 100},${d.target.y + 100 - nodeHeight/2}`;
+                    });
+
+                // Draw nodes
+                const nodes = svg.append('g')
+                    .selectAll('g')
+                    .data(root.descendants())
+                    .enter()
+                    .append('g')
+                    .attr('transform', d => `translate(${d.x + 100 - nodeWidth/2},${d.y + 100 - nodeHeight/2})`);
+
+                nodes.append('rect')
+                    .attr('class', 'node-box')
+                    .attr('width', nodeWidth)
+                    .attr('height', nodeHeight);
+
+                nodes.append('text')
+                    .attr('class', 'node-label')
+                    .attr('x', nodeWidth / 2)
+                    .attr('y', nodeHeight / 2)
+                    .text(d => d.data.label)
+                    .each(function(d) {
+                        const text = d3.select(this);
+                        const label = d.data.label;
+                        if (label.length > 18) {
+                            text.text(label.substring(0, 15) + '...');
+                        }
+                    });
+            };
+
+            const downloadAsJPEG = () => {
+                const svg = document.getElementById('hierarchy-svg');
+                if (!svg) return;
+
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+
+                canvas.width = svg.getAttribute('width');
+                canvas.height = svg.getAttribute('height');
+
+                img.onload = () => {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    
+                    canvas.toBlob((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = 'semantic-hierarchy.jpg';
+                        link.href = url;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                    }, 'image/jpeg', 0.95);
+                };
+
+                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>Semantic Class Hierarchy Visualizer</h1>
+                        <p>Upload an Excel file to visualize your ontology structure</p>
+                    </div>
+
+                    <div className="upload-section">
+                        <label className="file-upload" htmlFor="file-input">
+                            <input
+                                id="file-input"
+                                type="file"
+                                accept=".xlsx,.xls"
+                                onChange={handleFileUpload}
+                            />
+                            <div className="upload-icon">📊</div>
+                            <div>
+                                <strong>Click to upload Excel file</strong>
+                                <p style={{ margin: '0.5rem 0 0 0', color: '#666' }}>
+                                    File should contain: ID, Label, and Parent columns
+                                </p>
+                            </div>
+                        </label>
+                        
+                        {file && (
+                            <div className="info-message">
+                                ✓ Loaded: {file.name}
+                            </div>
+                        )}
+                        
+                        {error && (
+                            <div className="error-message">
+                                ⚠ {error}
+                            </div>
+                        )}
+                    </div>
+
+                    {hierarchyData && (
+                        <div className="visualization-section">
+                            <div className="controls">
+                                <button 
+                                    className="btn btn-primary"
+                                    onClick={downloadAsJPEG}
+                                >
+                                    📥 Download as JPEG
+                                </button>
+                            </div>
+                            
+                            <div className="svg-container" ref={svgRef}></div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<SemanticHierarchyVisualizer />, document.getElementById('root'));
+    </script>
+</body>
+</html>
