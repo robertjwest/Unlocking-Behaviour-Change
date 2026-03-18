@@ -1,0 +1,20 @@
+[
+  {
+    "title": "COM-B Course: Submit your questions",
+    "description": "Ahead of the course, tell us what specific topics or questions you'd like the training to address.",
+    "filename": "comb-form.html",
+    "type": "form"
+  },
+  {
+    "title": "CACTIS: Behavioural Goals Quiz",
+    "description": "Test your understanding of how behavioural goals are specified within the CACTIS framework.",
+    "filename": "CACTIS-quiz-behavioural-goals.html",
+    "type": "quiz"
+  },
+ {
+    "title": "COM-B Course: Likes and Dislikes Quiz",
+    "description": "Test your understanding of things we tend to like and dislike.",
+    "filename": "likes_dislike_quiz.html",
+    "type": "quiz"
+  }
+]

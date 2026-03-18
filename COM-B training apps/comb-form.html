@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COM-B Training Course: Things I'd Like the Course to Tell Me</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;500;600&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0ede6;
+    --surface: #ffffff;
+    --ink: #1c1c1c;
+    --ink-light: #5a5a5a;
+    --border: #d6d0c4;
+    --accent: #2c5f8a;
+    --accent-dark: #1e4166;
+    --accent-light: #e8f0f7;
+    --success: #2d6a4f;
+    --success-light: #e8f4ef;
+    --warning: #8a4a2c;
+    --shadow: rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 27px, rgba(180,160,120,0.1) 28px
+    );
+  }
+
+  .page { display: none; width: 100%; max-width: 680px; }
+  .page.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Header ── */
+  .site-header {
+    width: 100%;
+    max-width: 680px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 1.2rem;
+    margin-bottom: 2rem;
+  }
+
+  .site-header .org {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 0.5rem;
+  }
+
+  .site-header h1 {
+    font-family: 'Lora', serif;
+    font-size: clamp(1.3rem, 3.5vw, 1.8rem);
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--ink);
+  }
+
+  .site-header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2rem;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .intro-text {
+    font-size: 0.98rem;
+    line-height: 1.75;
+    color: var(--ink-light);
+    margin-bottom: 1.8rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .intro-text strong { color: var(--ink); font-weight: 600; }
+
+  /* ── Form elements ── */
+  textarea {
+    width: 100%;
+    min-height: 130px;
+    padding: 0.9rem 1rem;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.97rem;
+    line-height: 1.6;
+    color: var(--ink);
+    background: #faf9f7;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    resize: vertical;
+    transition: border-color 0.15s;
+    display: block;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+  }
+
+  .word-count {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-light);
+    text-align: right;
+    margin-top: 0.4rem;
+    letter-spacing: 0.04em;
+  }
+
+  .word-count.over { color: var(--warning); font-weight: 500; }
+
+  /* ── Buttons ── */
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.3rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.65rem 1.4rem;
+    border-radius: 3px;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background: white;
+    color: var(--ink);
+    border-color: var(--border);
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--ink);
+    background: #f5f3ee;
+  }
+
+  .btn-exit {
+    background: transparent;
+    color: var(--ink-light);
+    border-color: transparent;
+    font-size: 0.85rem;
+    margin-left: auto;
+  }
+
+  .btn-exit:hover { color: var(--ink); text-decoration: underline; }
+
+  /* ── Toast ── */
+  .toast {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .toast.success {
+    background: var(--success-light);
+    border: 1px solid #a8d5bf;
+    color: var(--success);
+  }
+
+  .toast.error {
+    background: #fdf0ec;
+    border: 1px solid #f0c4b4;
+    color: var(--warning);
+  }
+
+  .toast.show { display: block; animation: fadeIn 0.25s ease; }
+
+  /* ── List view ── */
+  .list-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .list-header h2 {
+    font-family: 'Lora', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+  }
+
+  .list-count {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.75rem;
+    color: var(--ink-light);
+    letter-spacing: 0.08em;
+  }
+
+  .submissions-list { list-style: none; }
+
+  .submissions-list li {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.8rem;
+    align-items: start;
+  }
+
+  .submissions-list li:last-child { border-bottom: none; }
+
+  .item-num {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-light);
+    background: var(--accent-light);
+    border-radius: 2px;
+    padding: 0.2rem 0.45rem;
+    margin-top: 0.1rem;
+    white-space: nowrap;
+  }
+
+  .item-text {
+    font-size: 0.96rem;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+
+  .item-time {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-light);
+    margin-top: 0.3rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--ink-light);
+    font-style: italic;
+    font-family: 'Lora', serif;
+    font-size: 1rem;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--ink-light);
+    font-size: 0.9rem;
+  }
+
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-left: 0.6rem;
+    vertical-align: middle;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Exit confirm ── */
+  .exit-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .exit-overlay.show { display: flex; }
+
+  .exit-dialog {
+    background: white;
+    border-radius: 4px;
+    padding: 2rem;
+    max-width: 360px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    text-align: center;
+  }
+
+  .exit-dialog h3 {
+    font-family: 'Lora', serif;
+    margin-bottom: 0.7rem;
+    font-size: 1.1rem;
+  }
+
+  .exit-dialog p {
+    font-size: 0.9rem;
+    color: var(--ink-light);
+    margin-bottom: 1.4rem;
+    line-height: 1.55;
+  }
+
+  .exit-dialog .btn-row { justify-content: center; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <p class="org">Unlocking Behaviour Change · COM-B Training</p>
+  <h1>Things I'd like the course <em>to tell me</em></h1>
+</header>
+
+<!-- ── PAGE 1: Form ── -->
+<div class="page active" id="page-form">
+  <div class="card">
+    <p class="intro-text">
+      Ahead of next week's course on applying the <strong>COM-B model of Behaviour</strong> and the
+      <strong>PRIME Theory of motivation</strong> to helping clients to achieve their behavioural goals,
+      I'd like to find out about any specific things that participants would like to find out about.
+      In the box below, type your topic or question and click <strong>Submit</strong>. This will then
+      be added to the list. To view the list of questions and topics already raised, click the
+      <strong>Review questions/topics</strong> button.
+    </p>
+
+    <div class="input-group">
+      <textarea
+        id="submission-text"
+        placeholder="Type your question or topic here…"
+        oninput="updateWordCount()"
+      ></textarea>
+      <p class="word-count" id="word-count">0 / 100 words</p>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="submit-btn" onclick="submitEntry()" disabled>
+        Submit
+      </button>
+      <button class="btn btn-secondary" onclick="showList()">
+        Review questions/topics
+      </button>
+      <button class="btn btn-exit" onclick="showExitDialog()">
+        Exit ✕
+      </button>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<!-- ── PAGE 2: List ── -->
+<div class="page" id="page-list">
+  <div class="card">
+    <div class="list-header">
+      <h2>Questions &amp; Topics Raised</h2>
+      <span class="list-count" id="list-count"></span>
+    </div>
+    <div id="list-content"></div>
+    <div class="btn-row" style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--border)">
+      <button class="btn btn-secondary" onclick="showForm()">← Go back</button>
+      <button class="btn btn-exit" onclick="showExitDialog()">Exit ✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Exit dialog ── -->
+<div class="exit-overlay" id="exit-overlay">
+  <div class="exit-dialog">
+    <h3>Leave the app?</h3>
+    <p>Are you sure you want to exit? Any unsaved text will be lost.</p>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="hideExitDialog()">Cancel</button>
+      <button class="btn btn-primary" onclick="doExit()">Yes, exit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPHFPpiVgdYHKRKQie6_-AjrGS-OcH2yX0tnMgB2FNhiTaWcFMRB5oAFqqXU2rU0NOvg/exec';
+
+  function countWords(text) {
+    return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+  }
+
+  function updateWordCount() {
+    const text = document.getElementById('submission-text').value;
+    const count = countWords(text);
+    const el = document.getElementById('word-count');
+    const btn = document.getElementById('submit-btn');
+    el.textContent = `${count} / 100 words`;
+    el.classList.toggle('over', count > 100);
+    btn.disabled = count === 0 || count > 100;
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    if (type === 'success') setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  async function submitEntry() {
+    const text = document.getElementById('submission-text').value.trim();
+    if (!text) return;
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    try {
+      // Send submission as a GET parameter with no-cors mode.
+      // Google Apps Script handles this reliably without CORS errors.
+      // We can't read the response in no-cors mode so we optimistically
+      // show success if no network error is thrown.
+      await fetch(APPS_SCRIPT_URL + '?action=submit&submission=' + encodeURIComponent(text), {
+        method: 'GET',
+        mode: 'no-cors'
+      });
+
+      document.getElementById('submission-text').value = '';
+      updateWordCount();
+      showToast('✓ Your question/topic has been submitted. Thank you!', 'success');
+    } catch(err) {
+      showToast('Could not connect. Please check your internet connection.', 'error');
+    }
+
+    btn.textContent = 'Submit';
+    updateWordCount();
+  }
+
+  function formatDate(isoString) {
+    try {
+      const d = new Date(isoString);
+      return d.toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    } catch { return ''; }
+  }
+
+  async function showList() {
+    document.getElementById('page-form').classList.remove('active');
+    document.getElementById('page-list').classList.add('active');
+    document.getElementById('list-content').innerHTML = '<div class="loading">Loading</div>';
+    document.getElementById('list-count').textContent = '';
+
+    try {
+      const resp = await fetch(APPS_SCRIPT_URL);
+      const data = await resp.json();
+
+      if (data.status === 'ok') {
+        const subs = data.submissions;
+        document.getElementById('list-count').textContent =
+          `${subs.length} entr${subs.length === 1 ? 'y' : 'ies'}`;
+
+        if (subs.length === 0) {
+          document.getElementById('list-content').innerHTML =
+            '<p class="empty-state">No questions or topics have been submitted yet.</p>';
+        } else {
+          const ul = document.createElement('ul');
+          ul.className = 'submissions-list';
+          subs.forEach((s, i) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span class="item-num">${String(i+1).padStart(2,'0')}</span>
+              <div>
+                <p class="item-text">${escapeHtml(s.text)}</p>
+                <p class="item-time">${formatDate(s.timestamp)}</p>
+              </div>
+            `;
+            ul.appendChild(li);
+          });
+          document.getElementById('list-content').innerHTML = '';
+          document.getElementById('list-content').appendChild(ul);
+        }
+      } else {
+        document.getElementById('list-content').innerHTML =
+          '<p class="empty-state">Could not load submissions.</p>';
+      }
+    } catch(err) {
+      document.getElementById('list-content').innerHTML =
+        '<p class="empty-state">Connection error. Please try again.</p>';
+    }
+  }
+
+  function showForm() {
+    document.getElementById('page-list').classList.remove('active');
+    document.getElementById('page-form').classList.add('active');
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  function showExitDialog() { document.getElementById('exit-overlay').classList.add('show'); }
+  function hideExitDialog() { document.getElementById('exit-overlay').classList.remove('show'); }
+  function doExit() {
+    window.close();
+    if (!window.closed) window.location.href = 'about:blank';
+  }
+</script>
+
+</body>
+</html>

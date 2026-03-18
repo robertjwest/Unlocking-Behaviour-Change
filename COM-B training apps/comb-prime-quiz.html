@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COM-B & PRIME Theory — Knowledge Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f5f0;
+    --card: #ffffff;
+    --ink: #1a1a18;
+    --ink-mid: #5a5a55;
+    --ink-light: #9a9a94;
+    --accent: #2d5a8e;
+    --accent-light: #e8f0f9;
+    --correct-bg: #eaf6ec;
+    --correct-border: #3a9e50;
+    --correct-text: #1e5c2c;
+    --wrong-bg: #fdf0ee;
+    --wrong-border: #d45a42;
+    --wrong-text: #7a2a1a;
+    --reveal-bg: #eaf6ec;
+    --reveal-border: #3a9e50;
+    --reveal-text: #1e5c2c;
+    --border: #e2dfd8;
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); min-height: 100vh; padding: 2rem 1rem 4rem; }
+  .page { max-width: 680px; margin: 0 auto; }
+
+  header { text-align: center; padding: 2.5rem 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+  .kicker { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+  header h1 { font-family: var(--serif); font-weight: 300; font-size: clamp(1.6rem, 4vw, 2.2rem); color: var(--ink); line-height: 1.25; margin-bottom: 0.6rem; }
+  header h1 em { font-style: italic; font-weight: 400; }
+  header p { font-size: 15px; color: var(--ink-mid); line-height: 1.6; max-width: 480px; margin: 0 auto; }
+
+  /* Registration */
+  .reg-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; }
+  .reg-card h2 { font-family: var(--serif); font-weight: 400; font-size: 1.2rem; margin-bottom: 0.4rem; color: var(--ink); }
+  .reg-card p { font-size: 14px; color: var(--ink-mid); margin-bottom: 1.5rem; line-height: 1.6; }
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--ink-mid); margin-bottom: 5px; }
+  .field input { width: 100%; padding: 10px 13px; border: 1px solid var(--border); border-radius: 8px; font-family: var(--sans); font-size: 15px; color: var(--ink); background: var(--bg); outline: none; transition: border-color 0.15s; }
+  .field input:focus { border-color: var(--accent); }
+  .field input.error { border-color: var(--wrong-border); }
+  .field-error { font-size: 12px; color: var(--wrong-text); margin-top: 4px; display: none; }
+  .field-error.visible { display: block; }
+  .start-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.15s; }
+  .start-btn:hover { opacity: 0.88; }
+
+  /* Progress */
+  .progress-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
+  .progress-track { flex: 1; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s ease; }
+  .progress-label { font-size: 12px; color: var(--ink-light); white-space: nowrap; min-width: 72px; text-align: right; }
+
+  /* Question */
+  .question-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-bottom: 1rem; }
+  .q-number { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.75rem; }
+  .q-text { font-family: var(--serif); font-size: 1.15rem; font-weight: 400; line-height: 1.55; color: var(--ink); margin-bottom: 1.5rem; }
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option-btn { display: flex; align-items: flex-start; gap: 12px; width: 100%; text-align: left; padding: 11px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14.5px; line-height: 1.55; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .option-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-light); }
+  .option-btn .letter { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--border); color: var(--ink-mid); font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; margin-top: 1px; transition: background 0.15s, color 0.15s; }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.correct { background: var(--correct-bg); border-color: var(--correct-border); color: var(--correct-text); }
+  .option-btn.correct .letter { background: var(--correct-border); color: #fff; }
+  .option-btn.wrong { background: var(--wrong-bg); border-color: var(--wrong-border); color: var(--wrong-text); }
+  .option-btn.wrong .letter { background: var(--wrong-border); color: #fff; }
+  .option-btn.reveal-correct { background: var(--reveal-bg); border-color: var(--reveal-border); color: var(--reveal-text); }
+  .option-btn.reveal-correct .letter { background: var(--reveal-border); color: #fff; }
+
+  .explanation { display: none; margin-top: 1rem; padding: 14px 16px; border-radius: 8px; background: #f0f4fa; border-left: 3px solid var(--accent); font-size: 14px; line-height: 1.7; color: var(--ink); }
+  .explanation.visible { display: block; }
+  .explanation .verdict { font-weight: 500; margin-bottom: 4px; font-size: 13px; letter-spacing: 0.03em; }
+  .explanation .verdict.ok { color: var(--correct-text); }
+  .explanation .verdict.no { color: var(--wrong-text); }
+
+  .nav-row { display: flex; justify-content: flex-end; margin-top: 1rem; }
+  .next-btn { padding: 10px 22px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; display: none; transition: opacity 0.15s; }
+  .next-btn.visible { display: inline-block; }
+  .next-btn:hover { opacity: 0.88; }
+
+  /* Score screen */
+  #score-screen { display: none; }
+  .score-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 3rem 2rem; text-align: center; }
+  .score-name { font-family: var(--serif); font-size: 2.4rem; font-weight: 400; color: var(--ink); margin-bottom: 0.5rem; }
+  .score-congrats { font-size: 15px; color: var(--ink-mid); margin-bottom: 1.5rem; line-height: 1.6; }
+  .score-display { font-family: var(--serif); font-size: 5rem; font-weight: 300; color: var(--ink); line-height: 1; margin-bottom: 0.3rem; }
+  .score-denom { font-size: 1.2rem; color: var(--ink-light); margin-bottom: 2rem; }
+
+  .action-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
+  .btn-retry { padding: 11px 24px; background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .btn-retry:hover { background: var(--accent); color: #fff; }
+  .btn-cert { padding: 11px 24px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .btn-cert:hover { opacity: 0.88; }
+  .btn-cert:disabled { opacity: 0.5; cursor: default; }
+
+  .sending-msg { font-size: 13px; color: var(--ink-light); margin-bottom: 1.5rem; min-height: 20px; }
+  .sending-msg.ok { color: var(--correct-text); }
+  .sending-msg.err { color: var(--wrong-text); }
+
+  .results-list { text-align: left; margin: 0 auto; max-width: 460px; border-top: 1px solid var(--border); }
+  .result-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--ink-mid); line-height: 1.5; }
+  .result-dot { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; margin-top: 2px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: 500; color: #fff; }
+  .result-dot.ok { background: var(--correct-border); }
+  .result-dot.no { background: var(--wrong-border); }
+
+  footer { text-align: center; margin-top: 2.5rem; font-size: 12px; color: var(--ink-light); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="kicker">Post-course assessment &middot; Brio Wellbeing</div>
+    <h1>COM-B &amp; <em>PRIME Theory</em></h1>
+    <p>10 questions to assess what you have learned on the course.</p>
+  </header>
+
+  <!-- Registration -->
+  <div id="reg-screen">
+    <div class="reg-card">
+      <h2>Before you begin</h2>
+      <p>Please enter your name and email address.</p>
+      <div class="field">
+        <label for="user-name">Full name</label>
+        <input type="text" id="user-name" placeholder="e.g. Jane Smith" autocomplete="name">
+        <div class="field-error" id="name-error">Please enter your full name.</div>
+      </div>
+      <div class="field">
+        <label for="user-email">Email address</label>
+        <input type="email" id="user-email" placeholder="e.g. jane.smith@example.com" autocomplete="email">
+        <div class="field-error" id="email-error">Please enter a valid email address.</div>
+      </div>
+      <button class="start-btn" onclick="startQuiz()">Start the quiz &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quiz" style="display:none;">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress"></div></div>
+      <div class="progress-label" id="progress-label">1 of 10</div>
+    </div>
+    <div class="question-card">
+      <div class="q-number" id="q-number">Question 1</div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="explanation" id="explanation">
+        <div class="verdict" id="verdict"></div>
+        <div id="exp-text"></div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="next-btn" id="next-btn">Next question &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Score -->
+  <div id="score-screen">
+    <div class="score-card">
+      <div class="score-name" id="score-name"></div>
+      <div class="score-congrats" id="score-congrats"></div>
+      <div class="score-display" id="score-big"></div>
+      <div class="score-denom">out of 10</div>
+      <div class="action-row">
+        <button class="btn-retry" onclick="restart()">Try again</button>
+        <button class="btn-cert" id="cert-btn" onclick="sendCertificate()">Email me the certificate</button>
+      </div>
+      <div class="sending-msg" id="sending-msg"></div>
+      <div class="results-list" id="results-list"></div>
+    </div>
+  </div>
+
+  <footer>Unlocking Behaviour Change CIC &nbsp;&middot;&nbsp; COM-B &amp; PRIME Training &nbsp;&middot;&nbsp; Brio Wellbeing, March 2026</footer>
+
+</div>
+<script>
+/* ══════════════════════════════════════════════════════
+   EMAILJS CONFIGURATION — paste your three IDs here
+   ══════════════════════════════════════════════════════ */
+var EMAILJS_PUBLIC_KEY  = '5R7wcWDPdgv_Tz3iM';
+var EMAILJS_SERVICE_ID  = 'service_2hqj1mk';
+var EMAILJS_TEMPLATE_ID = 'template_57luwwx';
+var ADMIN_EMAIL         = 'robert@unlockingbehaviourchange.com';
+
+emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+/* ══════════════════════════════════════════════════════
+   Course settings
+   ══════════════════════════════════════════════════════ */
+var COURSE_NAME  = 'COM-B and PRIME Theory';
+var COURSE_DATES = '17th and 18th March 2026';
+var COURSE_ORG   = 'Brio Wellbeing';
+
+/* ══════════════════════════════════════════════════════
+   Questions
+   ══════════════════════════════════════════════════════ */
+var questions = [
+  {
+    q: "COM-B stands for which of the following?",
+    opts: ["Cognition, Outcomes, Motivation, and Behaviour","Capability, Opportunity, Motivation, and Behaviour","Context, Objectives, Methods, and Behaviour","Capability, Objectives, Mindset, and Behaviour"],
+    correct: 1,
+    explanation: "COM-B stands for <strong>Capability, Opportunity, Motivation, and Behaviour</strong>. The model holds that behaviour occurs when all three components — capability, opportunity, and motivation — are simultaneously sufficient."
+  },
+  {
+    q: "According to COM-B, which of the following best describes 'psychological capability'?",
+    opts: ["Physical strength and stamina needed to carry out a behaviour","The availability of time and resources in the environment","Knowledge, cognitive skills, and mental capacity to perform a behaviour","Conscious plans and intentions about future behaviour"],
+    correct: 2,
+    explanation: "<strong>Psychological capability</strong> refers to knowledge, cognitive skills, and mental capacity. It is distinct from physical capability (strength and stamina) and from opportunity, which concerns environmental factors."
+  },
+  {
+    q: "In PRIME Theory, what does the letter 'R' stand for?",
+    opts: ["Regulation","Rewards","Responses","Reflections"],
+    correct: 2,
+    explanation: "In PRIME Theory, <strong>R stands for Responses</strong> — automatic reactions to environmental cues that are learned through repetition and can become habitual. PRIME stands for Plans, Responses, Impulses, Motives, and Evaluations."
+  },
+  {
+    q: "Which intervention function is most directly aimed at increasing psychological capability?",
+    opts: ["Environmental restructuring","Coercion","Education","Restriction"],
+    correct: 2,
+    explanation: "<strong>Education</strong> increases knowledge and understanding, making it the function most directly targeting psychological capability. It includes providing information, explaining relationships, and teaching skills."
+  },
+  {
+    q: "According to PRIME Theory, what happens when competing motives are present?",
+    opts: ["Behaviour stops until a conscious decision is made","The strongest motive typically determines the behaviour","Plans always override impulses","Evaluations determine which motive wins"],
+    correct: 1,
+    explanation: "PRIME Theory holds that motives compete with each other and <strong>the strongest motive typically wins</strong>, driving behaviour at that moment. The theory emphasises that behaviour is determined by the balance of forces at any given point in time."
+  },
+  {
+    q: "What is the primary purpose of conducting a 'behavioural diagnosis' before designing an intervention?",
+    opts: ["To select the most popular intervention function","To identify which COM-B components are barriers to the target behaviour","To estimate the budget required for the intervention","To choose which behaviour change techniques are best known"],
+    correct: 1,
+    explanation: "<strong>Behavioural diagnosis</strong> aims to identify which COM-B components represent barriers to the target behaviour in the specific context. Without this step, practitioners risk selecting interventions based on preference rather than evidence."
+  },
+  {
+    q: "Which statement best describes the relationship between COM-B and PRIME Theory?",
+    opts: ["PRIME Theory replaces COM-B for all practical purposes","COM-B and PRIME address completely different phenomena","PRIME provides a more detailed breakdown of motivational processes within the COM-B framework","COM-B is a theoretical model; PRIME is used only for policy-level analysis"],
+    correct: 2,
+    explanation: "<strong>PRIME provides a more detailed breakdown of motivational processes</strong> within the COM-B framework. Together, the models can be used for comprehensive behaviour analysis — COM-B for macro-level planning and PRIME for moment-to-moment behaviour generation."
+  },
+  {
+    q: "Which of the following is an example of 'social opportunity' as defined in the COM-B model?",
+    opts: ["A gym being located within walking distance of someone's home","Cultural norms that encourage physical activity","A person's knowledge of how to exercise safely","A person's intention to become more active"],
+    correct: 1,
+    explanation: "<strong>Social opportunity</strong> involves cultural norms, social influences, and interpersonal factors that enable or constrain behaviour. Physical opportunity, by contrast, relates to environmental resources, time, and accessibility — such as a gym being nearby."
+  },
+  {
+    q: "Which of the following is identified as a common pitfall in behaviour change intervention design?",
+    opts: ["Using too many behaviour change techniques in one intervention","Assuming that education alone will change behaviour","Specifying the target behaviour too precisely","Engaging stakeholders before the intervention is finalised"],
+    correct: 1,
+    explanation: "<strong>Assuming education alone will change behaviour</strong> is one of the most common pitfalls. Education only addresses psychological capability — it ignores opportunity and motivation barriers, which are often equally or more important in preventing behaviour change."
+  },
+  {
+    q: "In PRIME Theory, 'evaluations' refer to which of the following?",
+    opts: ["Assessments of whether an intervention has been effective","Beliefs and judgments about behaviours and their outcomes","Automatic impulses driven by physiological needs","Conscious plans for future action"],
+    correct: 1,
+    explanation: "<strong>Evaluations</strong> in PRIME Theory are beliefs and judgments about behaviours and their outcomes — including beliefs about effectiveness, appropriateness, and consequences. They can be based on personal experience or social learning."
+  }
+];
+
+/* ══════════════════════════════════════════════════════
+   State
+   ══════════════════════════════════════════════════════ */
+var current = 0, score = 0, answered = false, userAnswers = [];
+var userName = '', userEmail = '';
+
+/* ══════════════════════════════════════════════════════
+   Registration
+   ══════════════════════════════════════════════════════ */
+function startQuiz() {
+  var nameEl   = document.getElementById('user-name');
+  var emailEl  = document.getElementById('user-email');
+  var nameErr  = document.getElementById('name-error');
+  var emailErr = document.getElementById('email-error');
+  var valid = true;
+
+  nameEl.classList.remove('error');    emailEl.classList.remove('error');
+  nameErr.classList.remove('visible'); emailErr.classList.remove('visible');
+
+  if (!nameEl.value.trim()) {
+    nameEl.classList.add('error'); nameErr.classList.add('visible'); valid = false;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailEl.value.trim())) {
+    emailEl.classList.add('error'); emailErr.classList.add('visible'); valid = false;
+  }
+  if (!valid) return;
+
+  userName  = nameEl.value.trim();
+  userEmail = emailEl.value.trim();
+  document.getElementById('reg-screen').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  render();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  ['user-name','user-email'].forEach(function(id) {
+    document.getElementById(id).addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') startQuiz();
+    });
+  });
+  document.getElementById('next-btn').addEventListener('click', function() {
+    current++;
+    if (current >= questions.length) showScore();
+    else render();
+  });
+});
+
+/* ══════════════════════════════════════════════════════
+   Quiz
+   ══════════════════════════════════════════════════════ */
+function render() {
+  var q = questions[current];
+  document.getElementById('progress').style.width = (current / questions.length * 100) + '%';
+  document.getElementById('progress-label').textContent = (current + 1) + ' of ' + questions.length;
+  document.getElementById('q-number').textContent = 'Question ' + (current + 1);
+  document.getElementById('q-text').textContent = q.q;
+
+  var opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.opts.forEach(function(o, i) {
+    var btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = '<span class="letter">' + String.fromCharCode(65+i) + '</span><span>' + o + '</span>';
+    btn.addEventListener('click', function() { select(i); });
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('explanation').className = 'explanation';
+  document.getElementById('verdict').textContent = '';
+  document.getElementById('verdict').className = 'verdict';
+  document.getElementById('exp-text').innerHTML = '';
+  document.getElementById('next-btn').className = 'next-btn';
+  answered = false;
+}
+
+function select(i) {
+  if (answered) return;
+  answered = true;
+  var q = questions[current];
+  var btns = document.querySelectorAll('.option-btn');
+  var correct = (i === q.correct);
+
+  btns.forEach(function(b, idx) {
+    b.disabled = true;
+    if (idx === q.correct) b.classList.add(correct ? 'correct' : 'reveal-correct');
+    else if (idx === i)    b.classList.add('wrong');
+  });
+
+  if (correct) score++;
+  userAnswers.push({ q: q.q, correct: correct });
+
+  var verdict = document.getElementById('verdict');
+  verdict.textContent = correct ? 'Correct.' : 'Not quite.';
+  verdict.className = 'verdict ' + (correct ? 'ok' : 'no');
+  document.getElementById('exp-text').innerHTML = q.explanation;
+  document.getElementById('explanation').className = 'explanation visible';
+
+  var nb = document.getElementById('next-btn');
+  nb.className = 'next-btn visible';
+  nb.textContent = current < questions.length - 1 ? 'Next question \u2192' : 'See my results \u2192';
+}
+
+/* ══════════════════════════════════════════════════════
+   Score screen
+   ══════════════════════════════════════════════════════ */
+function showScore() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'block';
+  document.getElementById('progress').style.width = '100%';
+
+  document.getElementById('score-name').textContent = userName;
+  document.getElementById('score-congrats').textContent = 'Congratulations! You have scored';
+  document.getElementById('score-big').textContent = score;
+  document.getElementById('sending-msg').textContent = '';
+  document.getElementById('cert-btn').disabled = false;
+
+  var list = document.getElementById('results-list');
+  list.innerHTML = '';
+  userAnswers.forEach(function(a, i) {
+    var item = document.createElement('div');
+    item.className = 'result-item';
+    item.innerHTML = '<span class="result-dot ' + (a.correct ? 'ok' : 'no') + '">' + (a.correct ? '\u2713' : '\u2717') + '</span><span>' + (i+1) + '. ' + a.q + '</span>';
+    list.appendChild(item);
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   Certificate
+   ══════════════════════════════════════════════════════ */
+function buildCertificateHTML() {
+  var pct = Math.round(score / 10 * 100);
+  return [
+    '<!DOCTYPE html><html><head><meta charset="UTF-8">',
+    '<style>',
+    'body{font-family:Georgia,serif;background:#f7f5f0;margin:0;padding:40px 20px;}',
+    '.cert{max-width:580px;margin:0 auto;background:#fff;border:2px solid #2d5a8e;border-radius:4px;padding:50px 60px;text-align:center;}',
+    '.org{font-family:Arial,sans-serif;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#2d5a8e;margin-bottom:28px;}',
+    '.present{font-family:Arial,sans-serif;font-size:12px;color:#5a5a55;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;}',
+    '.cert-title{font-size:30px;font-weight:normal;color:#1a1a18;font-style:italic;margin-bottom:4px;}',
+    '.divider{width:50px;height:2px;background:#2d5a8e;margin:18px auto;}',
+    '.recipient{font-size:28px;font-weight:normal;color:#1a1a18;margin:16px 0 8px;}',
+    '.body-text{font-size:15px;color:#5a5a55;line-height:1.7;margin-bottom:6px;}',
+    '.course{font-size:19px;color:#1a1a18;font-style:italic;margin:10px 0 6px;}',
+    '.dates{font-size:14px;color:#5a5a55;margin-bottom:3px;}',
+    '.org-line{font-size:14px;color:#5a5a55;margin-bottom:24px;}',
+    '.score-line{display:inline-block;padding:4px 16px;border-radius:20px;background:#e8f0f9;border:1px solid #2d5a8e;color:#2d5a8e;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.05em;margin-bottom:28px;}',
+    '.sig-area{border-top:1px solid #e2dfd8;padding-top:22px;}',
+    '.sig-name{font-size:16px;color:#1a1a18;}',
+    '.sig-role{font-family:Arial,sans-serif;font-size:12px;color:#9a9a94;margin-top:4px;}',
+    '.issued{font-family:Arial,sans-serif;font-size:11px;color:#9a9a94;margin-top:20px;letter-spacing:0.05em;}',
+    '</style></head><body>',
+    '<div class="cert">',
+    '<div class="org">Unlocking Behaviour Change CIC</div>',
+    '<div class="present">Certificate of Completion</div>',
+    '<div class="cert-title">This is to certify that</div>',
+    '<div class="divider"></div>',
+    '<div class="recipient">' + userName + '</div>',
+    '<div class="body-text">has successfully completed the course</div>',
+    '<div class="course">' + COURSE_NAME + '</div>',
+    '<div class="dates">Delivered on ' + COURSE_DATES + '</div>',
+    '<div class="org-line">for ' + COURSE_ORG + '</div>',
+    '<div class="score-line">Quiz score: ' + score + ' / 10 (' + pct + '%)</div>',
+    '<div class="sig-area">',
+    '<div class="sig-name">Professor Robert West</div>',
+    '<div class="sig-role">Director, Unlocking Behaviour Change CIC</div>',
+    '</div>',
+    '<div class="issued">Issued March 2026</div>',
+    '</div></body></html>'
+  ].join('');
+}
+
+function sendCertificate() {
+  var btn = document.getElementById('cert-btn');
+  var el  = document.getElementById('sending-msg');
+  btn.disabled = true;
+  el.textContent = 'Sending your certificate\u2026';
+  el.className = 'sending-msg';
+
+  var pct = Math.round(score / 10 * 100);
+  var params = {
+    to_name:          userName,
+    to_email:         userEmail,
+    admin_email:      ADMIN_EMAIL,
+    course_name:      COURSE_NAME,
+    course_dates:     COURSE_DATES,
+    course_org:       COURSE_ORG,
+    score:            score + ' / 10 (' + pct + '%)',
+    certificate_html: buildCertificateHTML()
+  };
+
+  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
+    .then(function() {
+      el.textContent = '\u2713 Certificate sent to ' + userEmail;
+      el.className = 'sending-msg ok';
+    })
+    .catch(function(err) {
+      console.error('EmailJS error:', err);
+      btn.disabled = false;
+      el.textContent = 'Something went wrong \u2014 please try again or contact robert@unlockingbehaviourchange.com.';
+      el.className = 'sending-msg err';
+    });
+}
+
+/* ══════════════════════════════════════════════════════
+   Restart
+   ══════════════════════════════════════════════════════ */
+function restart() {
+  current = 0; score = 0; answered = false; userAnswers = [];
+  document.getElementById('score-screen').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  render();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz: What do we tend to like and dislike?</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F7F4EE;
+    --ink: #1C1A17;
+    --ink-light: #4A4740;
+    --ink-faint: #8A8680;
+    --rule: #D4CFC6;
+    --accent: #2E5BA8;
+    --accent-light: #E8EFF8;
+    --correct: #2D6A4F;
+    --correct-bg: #EAF4EE;
+    --wrong: #8B2020;
+    --wrong-bg: #F8EAEA;
+    --gold: #C4952A;
+  }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding: 2rem 0 1.5rem;
+    margin-bottom: 3rem;
+    background: var(--cream);
+  }
+
+  .header-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  .kicker {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+  }
+
+  .byline {
+    font-size: 14px;
+    color: var(--ink-faint);
+    font-style: italic;
+    font-family: 'Libre Baskerville', serif;
+  }
+
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+  }
+
+  /* Score bar */
+  .score-strip {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    background: white;
+    margin-bottom: 2.5rem;
+  }
+
+  .score-num {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 64px;
+    line-height: 1;
+  }
+
+  .score-meta { flex: 1; }
+
+  .score-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 10%;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 5px;
+  }
+
+  /* Question cards */
+  .q-card {
+    border: 1px solid var(--rule);
+    background: white;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .q-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--rule);
+    transition: background 0.2s;
+  }
+
+  .q-card.answered::before { background: var(--accent); }
+  .q-card.correct-card::before { background: var(--correct); }
+  .q-card.wrong-card::before { background: var(--wrong); }
+
+  .q-num {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.6rem;
+  }
+
+  .q-text {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Options */
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 14px;
+    border: 1px solid var(--rule);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+    background: white;
+    width: 100%;
+    text-align: left;
+  }
+
+  .opt:hover { border-color: var(--accent); background: var(--accent-light); }
+
+  .opt.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+
+  .opt.correct {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+    color: var(--correct);
+    cursor: default;
+  }
+
+  .opt.wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+    color: var(--wrong);
+    cursor: default;
+  }
+
+  .opt.neutral-after {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  .opt-letter {
+    font-weight: 600;
+    font-size: 12px;
+    min-width: 18px;
+    padding-top: 1px;
+    font-family: 'Source Sans 3', sans-serif;
+  }
+
+  /* Submit button */
+  .submit-btn {
+    margin-top: 8px;
+    padding: 9px 22px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .submit-btn:hover { background: var(--accent); }
+  .submit-btn:disabled { background: var(--rule); color: var(--ink-faint); cursor: default; }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 1rem;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    border-left: 3px solid;
+  }
+
+  .feedback.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .feedback.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+
+  .feedback-verdict {
+    font-weight: 600;
+    font-family: 'Libre Baskerville', serif;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+  }
+
+  /* Result panel */
+  #result-panel {
+    display: none;
+    border: 2px solid var(--ink);
+    background: white;
+    padding: 2.5rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  #result-panel .result-score {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  #result-panel .result-denom {
+    font-size: 1rem;
+    color: var(--ink-faint);
+    margin-bottom: 1.25rem;
+    font-family: 'Libre Baskerville', serif;
+    font-style: italic;
+  }
+
+  #result-panel .result-msg {
+    font-size: 15px;
+    color: var(--ink-light);
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto 1.5rem;
+  }
+
+  .retry-btn {
+    padding: 10px 28px;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .retry-btn:hover { background: var(--ink); color: var(--cream); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-faint);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="kicker">Reading comprehension quiz</div>
+    <h1>What do we tend to like and dislike?</h1>
+    <div class="byline">Based on the article by Robert West</div>
+  </div>
+</header>
+
+<main class="main">
+
+  <div class="score-strip">
+    <div class="score-num" id="score-display">0</div>
+    <div class="score-meta">
+      <div class="score-label">Score</div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+      <div class="progress-text" id="prog-text">Question 1 of 10</div>
+    </div>
+  </div>
+
+  <div id="questions-container"></div>
+  <div id="result-panel"></div>
+
+</main>
+
+<footer>Quiz generated with Claude.ai &nbsp;·&nbsp; Based on West, R. (2025)</footer>
+
+<script>
+const questions = [
+  {
+    q: "According to the article, positive affect and negative affect are best understood as:",
+    opts: [
+      "Two ends of the same dimension, from very pleasant to very unpleasant",
+      "Two independent dimensions that can each vary in extremity",
+      "Identical constructs measured on different scales",
+      "A single dimension with a neutral midpoint"
+    ],
+    answer: 1,
+    explanation: "The article states that positive and negative affect 'are not generally thought of as two ends of the same dimension but as two different dimensions' — a distinction established by Watson, Clark and Tellegen (1988)."
+  },
+  {
+    q: "Which of the following is listed under 'Agency & mastery' as something people tend to dislike?",
+    opts: [
+      "Social isolation",
+      "Physical discomfort",
+      "Cognitive incoherence",
+      "Financial loss"
+    ],
+    answer: 2,
+    explanation: "Cognitive incoherence appears in the Agency & mastery domain, alongside other items relating to control, competence, and understanding. The other options belong to different domains."
+  },
+  {
+    q: "Self-Determination Theory identifies three basic universal psychological needs. Which of the following is NOT one of them?",
+    opts: [
+      "Autonomy",
+      "Competence",
+      "Self-esteem",
+      "Relatedness"
+    ],
+    answer: 2,
+    explanation: "Ryan & Deci's SDT specifies autonomy, competence, and relatedness as the three basic needs. Self-esteem is the focus of Leary & Baumeister's sociometer theory, which is a separate framework."
+  },
+  {
+    q: "The article argues that Maslow's hierarchy is valuable but flawed. What is the key limitation it identifies?",
+    opts: [
+      "Maslow did not include social needs in his framework",
+      "There is no universally applicable hierarchy with basic needs always taking priority",
+      "Maslow's framework only applies to Western cultures",
+      "The hierarchy ignores biological drives entirely"
+    ],
+    answer: 1,
+    explanation: "The article states there is 'no universally applicable hierarchy' — any source of liking or disliking could in principle take priority over any other in a given person and context, supported by Wahba & Bridwell (1976) and Tay & Diener (2011)."
+  },
+  {
+    q: "Loewenstein's (1994) account of curiosity characterises it as:",
+    opts: [
+      "An innate drive to socialise and connect with others",
+      "A form of cognitive discomfort arising from information gaps",
+      "A learned response to environmental rewards",
+      "A component of aesthetic pleasure"
+    ],
+    answer: 1,
+    explanation: "Loewenstein characterised curiosity as 'a drive state arising from information gaps — a form of cognitive discomfort that motivates exploration and discovery', grounding items like discovery and understanding in the Agency & mastery domain."
+  },
+  {
+    q: "Which domain in the taxonomy includes 'transcendence' as something people tend to like?",
+    opts: [
+      "Agency & mastery",
+      "Social standing & identity",
+      "Bodily & hedonic well-being",
+      "Psychological well-being and fulfilment"
+    ],
+    answer: 3,
+    explanation: "Transcendence appears in the Psychological well-being and fulfilment domain, alongside feeling fulfilled, having purpose, feeling calm, experiencing aesthetic pleasure, and feeling hope."
+  },
+  {
+    q: "Leary and Baumeister's sociometer theory proposes that self-esteem functions as:",
+    opts: [
+      "A direct source of motivation independent of social context",
+      "A monitor of social inclusion and exclusion",
+      "A cognitive schema for evaluating personal achievements",
+      "A biological drive analogous to hunger or thirst"
+    ],
+    answer: 1,
+    explanation: "Sociometer theory proposes that self-esteem is 'a psychological monitor of social inclusion and exclusion' — positive feelings from being respected and liked are evolutionarily grounded signals about one's standing in the social group."
+  },
+  {
+    q: "The article notes that individual items in the taxonomy may overlap. Why does it nevertheless list them separately?",
+    opts: [
+      "Because each item corresponds to a distinct neuroscientific mechanism",
+      "Because they each have a distinct theoretical source in the literature",
+      "Because they can each provide a useful target in a behaviour change intervention",
+      "Because they each map onto a different COM-B component"
+    ],
+    answer: 2,
+    explanation: "The article states the items 'are judged to be sufficiently distinct to warrant listing because they can provide a useful target in a behaviour change intervention.'"
+  },
+  {
+    q: "Terror Management Theory is most directly relevant to which items in the taxonomy?",
+    opts: [
+      "Being respected by others and having self-respect",
+      "The prospect of staying alive, transcendence, hope and purpose",
+      "Justice, reciprocity and social order",
+      "Discovery, understanding and cognitive coherence"
+    ],
+    answer: 1,
+    explanation: "Terror Management Theory focuses on anxiety about mortality and how humans manage it through cultural worldviews and self-esteem — directly relevant to items around staying alive, transcendence, hope and purpose in the Bodily and Psychological well-being domains."
+  },
+  {
+    q: "According to the article, which of the following statements about likes and dislikes is correct?",
+    opts: [
+      "All people like and dislike the same things to the same degree",
+      "Likes and dislikes are stable across time and context for each individual",
+      "None of the items listed as liked are liked all the time by all people",
+      "Biological needs are always liked more intensely than social ones"
+    ],
+    answer: 2,
+    explanation: "The article explicitly states: 'none of the items listed as things we tend to like are liked all the time by all people.' Individual differences and contextual influences on likes and dislikes are described as 'an extremely important area of study.'"
+  }
+];
+
+let answers = new Array(10).fill(null);
+let submitted = new Array(10).fill(false);
+let score = 0;
+const letters = ['A','B','C','D'];
+
+function render() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+
+  questions.forEach((q, qi) => {
+    const card = document.createElement('div');
+    card.className = 'q-card' + (submitted[qi] ? (answers[qi] === q.answer ? ' correct-card' : ' wrong-card') : (answers[qi] !== null ? ' answered' : ''));
+
+    const qNum = document.createElement('div');
+    qNum.className = 'q-num';
+    qNum.textContent = 'Question ' + (qi + 1) + ' of 10';
+    card.appendChild(qNum);
+
+    const qText = document.createElement('div');
+    qText.className = 'q-text';
+    qText.textContent = q.q;
+    card.appendChild(qText);
+
+    q.opts.forEach((opt, oi) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      if (submitted[qi]) {
+        if (oi === q.answer) btn.classList.add('correct');
+        else if (oi === answers[qi]) btn.classList.add('wrong');
+        else btn.classList.add('neutral-after');
+      } else if (answers[qi] === oi) {
+        btn.classList.add('selected');
+      }
+      btn.innerHTML = '<span class="opt-letter">' + letters[oi] + '</span><span>' + opt + '</span>';
+      if (!submitted[qi]) {
+        btn.onclick = () => { answers[qi] = oi; render(); };
+      }
+      card.appendChild(btn);
+    });
+
+    if (!submitted[qi]) {
+      const sb = document.createElement('button');
+      sb.className = 'submit-btn';
+      sb.textContent = 'Submit answer';
+      sb.disabled = answers[qi] === null;
+      sb.onclick = () => {
+        submitted[qi] = true;
+        if (answers[qi] === q.answer) score++;
+        updateMeta();
+        render();
+        checkComplete();
+        setTimeout(() => {
+          const nextCard = document.querySelectorAll('.q-card')[qi + 1];
+          if (nextCard) nextCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 200);
+      };
+      card.appendChild(sb);
+    } else {
+      const fb = document.createElement('div');
+      const isCorrect = answers[qi] === q.answer;
+      fb.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+      fb.innerHTML = '<span class="feedback-verdict">' + (isCorrect ? 'Correct.' : 'Not quite.') + '</span>' + q.explanation;
+      card.appendChild(fb);
+    }
+
+    container.appendChild(card);
+  });
+}
+
+function updateMeta() {
+  const done = submitted.filter(Boolean).length;
+  document.getElementById('score-display').textContent = score + '/' + done;
+  document.getElementById('prog-fill').style.width = (done * 10) + '%';
+  document.getElementById('prog-text').textContent = done < 10 ? 'Question ' + (done + 1) + ' of 10' : 'Complete';
+}
+
+function checkComplete() {
+  if (!submitted.every(Boolean)) return;
+  const panel = document.getElementById('result-panel');
+  panel.style.display = 'block';
+  const pct = Math.round(score / 10 * 100);
+  const msg = pct >= 90 ? 'Excellent — you have a thorough grasp of the article.' :
+              pct >= 70 ? 'Good work. A re-read of the weaker areas will consolidate your knowledge.' :
+              pct >= 50 ? 'A reasonable start. It is worth revisiting the taxonomy and theoretical sections.' :
+                          'The article covers a lot of ground — it may be worth a careful re-read.';
+  panel.innerHTML =
+    '<div class="result-score">' + score + '</div>' +
+    '<div class="result-denom">out of 10 &nbsp;&mdash;&nbsp; ' + pct + '%</div>' +
+    '<div class="result-msg">' + msg + '</div>' +
+    '<button class="retry-btn" onclick="resetQuiz()">Try again</button>';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetQuiz() {
+  answers = new Array(10).fill(null);
+  submitted = new Array(10).fill(false);
+  score = 0;
+  document.getElementById('result-panel').style.display = 'none';
+  updateMeta();
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+render();
+updateMeta();
+</script>
+</body>
+</html>

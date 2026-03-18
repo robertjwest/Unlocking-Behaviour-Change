@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CACTIS: Behavioural Goals Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f5f0e8;
+    --accent: #c0392b;
+    --accent2: #2980b9;
+    --correct: #27ae60;
+    --wrong: #e74c3c;
+    --muted: #7f8c8d;
+    --border: #d4c9b0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(180,160,120,0.12) 28px);
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-top: 4px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    padding: 1.5rem 0;
+    margin-bottom: 2.5rem;
+  }
+
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    margin: 1.5rem 0 0;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--ink);
+    transition: width 0.4s ease;
+    border-radius: 2px;
+  }
+
+  .question-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 3px 3px 0 var(--border);
+    display: none;
+    animation: slideIn 0.3s ease;
+  }
+
+  .question-card.active { display: block; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .q-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .q-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+    color: var(--ink);
+  }
+
+  .options { display: flex; flex-direction: column; gap: 0.6rem; }
+
+  .option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: white;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+
+  .option:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: #faf8f4;
+  }
+
+  .option .key {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 1.2rem;
+    padding-top: 0.05rem;
+    flex-shrink: 0;
+  }
+
+  .option.correct {
+    border-color: var(--correct);
+    background: #eafaf1;
+    color: var(--correct);
+  }
+
+  .option.correct .key { color: var(--correct); }
+
+  .option.wrong {
+    border-color: var(--wrong);
+    background: #fdf2f2;
+    color: var(--wrong);
+  }
+
+  .option.wrong .key { color: var(--wrong); }
+
+  .option:disabled { cursor: default; }
+
+  .feedback {
+    margin-top: 1.2rem;
+    padding: 0.9rem 1rem;
+    border-left: 3px solid var(--ink);
+    background: #faf8f4;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--ink);
+    display: none;
+  }
+
+  .feedback.show { display: block; }
+  .feedback.correct-fb { border-color: var(--correct); }
+  .feedback.wrong-fb   { border-color: var(--wrong); }
+
+  .feedback strong { font-weight: 500; }
+
+  .nav {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.2rem;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.4rem;
+    border: 1.5px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+  }
+
+  .btn:hover { background: var(--accent); border-color: var(--accent); }
+  .btn:disabled { opacity: 0.4; cursor: default; background: var(--ink); border-color: var(--ink); }
+
+  /* Results panel */
+  #results {
+    display: none;
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 2px;
+    padding: 2.5rem;
+    box-shadow: 3px 3px 0 var(--border);
+    text-align: center;
+  }
+
+  #results.show { display: block; animation: slideIn 0.4s ease; }
+
+  .score-big {
+    font-family: 'DM Serif Display', serif;
+    font-size: 5rem;
+    line-height: 1;
+    color: var(--ink);
+    margin: 1rem 0 0.3rem;
+  }
+
+  .score-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .score-message {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    font-style: italic;
+    margin: 1.5rem 0;
+    color: var(--ink);
+  }
+
+  .score-breakdown {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 1.5rem 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  .score-breakdown span { color: var(--muted); }
+  .score-breakdown strong { color: var(--ink); }
+
+  .btn-restart {
+    margin-top: 1rem;
+    background: white;
+    color: var(--ink);
+  }
+
+  .btn-restart:hover { background: var(--ink); color: var(--paper); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <p class="label">CACTIS Framework</p>
+    <h1>Specifying <em>Behavioural</em> Goals</h1>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  </header>
+
+  <div id="quiz-area"></div>
+  <div id="results">
+    <p class="label">Quiz complete</p>
+    <div class="score-big" id="score-num"></div>
+    <p class="score-label">out of 10</p>
+    <p class="score-message" id="score-msg"></p>
+    <div class="score-breakdown">
+      <div><span>Correct </span><strong id="sb-correct"></strong></div>
+      <div><span>Incorrect </span><strong id="sb-wrong"></strong></div>
+    </div>
+    <button class="btn btn-restart" onclick="restart()">↺ Try Again</button>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q: "In CACTIS, how is 'behaviour' defined?",
+    opts: [
+      "Only intentional, conscious actions",
+      "Anything people do or don't do",
+      "Observable physical actions only",
+      "Actions that have measurable health outcomes"
+    ],
+    answer: 1,
+    fb: "CACTIS uses a broad definition: behaviour includes anything people <em>do or don't do</em> — covering both active and passive behaviours such as 'smoking' and 'abstaining from tobacco'."
+  },
+  {
+    q: "Which of the following is the best description of a 'target behaviour' in CACTIS?",
+    opts: [
+      "Any health-related activity performed by an individual",
+      "A behaviour that an intervention aims to change in some way",
+      "The desired end-state after an intervention is complete",
+      "A behaviour identified in scientific literature as harmful"
+    ],
+    answer: 1,
+    fb: "A target behaviour is one <em>we want to change in some way</em>. The description may specify type, timing, circumstances, and/or manner of the behaviour."
+  },
+  {
+    q: "'Reducing mean BMI of a population' — is this a valid behavioural goal in CACTIS?",
+    opts: [
+      "Yes, because it is measurable and population-level",
+      "Yes, because it relates to health behaviour",
+      "No, because it is an outcome of behaviour rather than behaviour itself",
+      "No, because it refers to a physical characteristic rather than a disease"
+    ],
+    answer: 2,
+    fb: "A behavioural goal must directly relate to behaviour, not to outcomes <em>of</em> behaviour. BMI is an outcome of calorie consumption and physical activity, not a behaviour itself."
+  },
+  {
+    q: "Which of the following IS a valid behavioural goal?",
+    opts: [
+      "Reducing mean systolic blood pressure in hypertensive patients",
+      "Reducing median weekly alcohol consumption",
+      "Lowering the incidence of type 2 diabetes in adults over 50",
+      "Improving life expectancy among smokers"
+    ],
+    answer: 1,
+    fb: "'Reducing median weekly alcohol consumption' directly describes a behaviour. The other options describe health outcomes rather than behaviours themselves."
+  },
+  {
+    q: "Which of the following correctly describes the three dimensions along which behavioural goals may be specified?",
+    opts: [
+      "Frequency, duration, and intensity",
+      "Prevalence, frequency, and amount",
+      "Incidence, prevalence, and recurrence",
+      "Onset, maintenance, and cessation"
+    ],
+    answer: 1,
+    fb: "According to the CACTIS framework, a behavioural goal may involve changing the <em>prevalence</em>, <em>frequency</em>, or <em>amount</em> of a behaviour."
+  },
+  {
+    q: "A campaign aims to increase the proportion of adults who attend annual dental check-ups. Which dimension of behavioural change does this represent?",
+    opts: [
+      "Amount",
+      "Duration",
+      "Prevalence",
+      "Frequency"
+    ],
+    answer: 2,
+    fb: "<em>Prevalence</em> refers to the proportion of a population performing a behaviour. Increasing the share of adults who attend dental check-ups is therefore a prevalence goal."
+  },
+  {
+    q: "An intervention tries to reduce how often junior doctors eat red meat each week. Which dimension of behavioural change does this target?",
+    opts: [
+      "Prevalence",
+      "Amount",
+      "Intensity",
+      "Frequency"
+    ],
+    answer: 3,
+    fb: "<em>Frequency</em> refers to how often a behaviour occurs. Reducing the number of times per week red meat is eaten targets frequency."
+  },
+  {
+    q: "'Increasing mean amount of household waste recycled' is an example of a goal targeting which dimension?",
+    opts: [
+      "Frequency",
+      "Prevalence",
+      "Amount",
+      "Rate"
+    ],
+    answer: 2,
+    fb: "<em>Amount</em> refers to the quantity or volume of a behaviour. Mean household waste recycled is a quantity measure, making this an 'amount' goal."
+  },
+  {
+    q: "A roadside sign displays a smiley face when drivers stay within the speed limit. In CACTIS terms, which behavioural framing does this represent?",
+    opts: [
+      "Targeting the unwanted behaviour (speeding) by reward",
+      "Targeting the wanted behaviour (staying within the limit) by reward",
+      "Targeting the unwanted behaviour (speeding) by punishment",
+      "Targeting the wanted behaviour (staying within the limit) by punishment"
+    ],
+    answer: 1,
+    fb: "The smiley face is a <em>reward</em> for <em>staying within the speed limit</em> — the wanted version of the behaviour. This contrasts with a fine, which would punish the unwanted behaviour (speeding)."
+  },
+  {
+    q: "Why might it sometimes be useful to break a broadly defined target behaviour into component behaviours?",
+    opts: [
+      "Because broadly defined behaviours cannot be measured reliably",
+      "Because component behaviours are always more important than the overall behaviour",
+      "Because component behaviours may require different approaches to influence them",
+      "Because CACTIS only supports single-behaviour interventions"
+    ],
+    answer: 2,
+    fb: "The framework notes that component behaviours of a broadly defined behaviour are often likely to require <em>different approaches</em> to influencing them, making it useful to analyse them separately."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = new Array(questions.length).fill(false);
+
+function render() {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = '';
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'question-card' + (i === current ? ' active' : '');
+    card.id = 'q' + i;
+
+    const letters = ['A','B','C','D'];
+    card.innerHTML = `
+      <p class="q-number">Question ${i+1} of ${questions.length}</p>
+      <p class="q-text">${q.q}</p>
+      <div class="options" id="opts-${i}">
+        ${q.opts.map((o, oi) => `
+          <button class="option" onclick="choose(${i}, ${oi})" id="opt-${i}-${oi}">
+            <span class="key">${letters[oi]}</span>
+            <span>${o}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="feedback" id="fb-${i}"></div>
+      <div class="nav">
+        <button class="btn" id="next-${i}" onclick="next()" disabled>
+          ${i < questions.length - 1 ? 'Next →' : 'See Results →'}
+        </button>
+      </div>
+    `;
+    area.appendChild(card);
+  });
+  updateProgress();
+}
+
+function choose(qi, oi) {
+  if (answered[qi]) return;
+  answered[qi] = true;
+  const q = questions[qi];
+  const opts = document.querySelectorAll(`#opts-${qi} .option`);
+  opts.forEach(o => o.disabled = true);
+
+  const chosen = document.getElementById(`opt-${qi}-${oi}`);
+  const correct = document.getElementById(`opt-${qi}-${q.answer}`);
+  const fb = document.getElementById(`fb-${qi}`);
+
+  if (oi === q.answer) {
+    chosen.classList.add('correct');
+    score++;
+    fb.innerHTML = `<strong>Correct.</strong> ${q.fb}`;
+    fb.classList.add('correct-fb');
+  } else {
+    chosen.classList.add('wrong');
+    correct.classList.add('correct');
+    fb.innerHTML = `<strong>Not quite.</strong> ${q.fb}`;
+    fb.classList.add('wrong-fb');
+  }
+  fb.classList.add('show');
+  document.getElementById(`next-${qi}`).disabled = false;
+}
+
+function next() {
+  if (current < questions.length - 1) {
+    document.getElementById('q' + current).classList.remove('active');
+    current++;
+    document.getElementById('q' + current).classList.add('active');
+    updateProgress();
+  } else {
+    showResults();
+  }
+}
+
+function updateProgress() {
+  const pct = (current / questions.length) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+}
+
+function showResults() {
+  document.getElementById('quiz-area').style.display = 'none';
+  const r = document.getElementById('results');
+  r.classList.add('show');
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('sb-correct').textContent = score;
+  document.getElementById('sb-wrong').textContent = questions.length - score;
+  document.getElementById('progress').style.width = '100%';
+
+  const msgs = [
+    [0, 3, "Keep reading — the framework will click with more study."],
+    [4, 6, "A solid start. Revisit the sections on dimensions and framing."],
+    [7, 9, "Good command of the material. One or two areas to revisit."],
+    [10, 10, "Full marks — excellent understanding of the CACTIS framework."]
+  ];
+  const msg = msgs.find(([lo, hi]) => score >= lo && score <= hi);
+  document.getElementById('score-msg').textContent = msg[2];
+}
+
+function restart() {
+  current = 0; score = 0; answered = new Array(questions.length).fill(false);
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('quiz-area').style.display = '';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
