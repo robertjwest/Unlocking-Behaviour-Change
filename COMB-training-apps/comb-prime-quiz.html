@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>COM-B & PRIME Theory — Knowledge Quiz</title>
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -100,11 +100,6 @@
   .btn-retry:hover { background: var(--accent); color: #fff; }
   .btn-cert { padding: 11px 24px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: var(--sans); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
   .btn-cert:hover { opacity: 0.88; }
-  .btn-cert:disabled { opacity: 0.5; cursor: default; }
-
-  .sending-msg { font-size: 13px; color: var(--ink-light); margin-bottom: 1.5rem; min-height: 20px; }
-  .sending-msg.ok { color: var(--correct-text); }
-  .sending-msg.err { color: var(--wrong-text); }
 
   .results-list { text-align: left; margin: 0 auto; max-width: 460px; border-top: 1px solid var(--border); }
   .result-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--ink-mid); line-height: 1.5; }
@@ -172,9 +167,8 @@
       <div class="score-denom">out of 10</div>
       <div class="action-row">
         <button class="btn-retry" onclick="restart()">Try again</button>
-        <button class="btn-cert" id="cert-btn" onclick="sendCertificate()">Email me the certificate</button>
+        <button class="btn-cert" onclick="downloadCertificate()">Download certificate &darr;</button>
       </div>
-      <div class="sending-msg" id="sending-msg"></div>
       <div class="results-list" id="results-list"></div>
     </div>
   </div>
@@ -183,98 +177,72 @@
 
 </div>
 <script>
-/* ══════════════════════════════════════════════════════
-   EMAILJS CONFIGURATION — paste your three IDs here
-   ══════════════════════════════════════════════════════ */
-var EMAILJS_PUBLIC_KEY  = '5R7wcWDPdgv_Tz3iM';
-var EMAILJS_SERVICE_ID  = 'service_2hqj1mk';
-var EMAILJS_TEMPLATE_ID = 'template_57luwwx';
-var ADMIN_EMAIL         = 'robert@unlockingbehaviourchange.com';
-
-emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-
-/* ══════════════════════════════════════════════════════
-   Course settings
-   ══════════════════════════════════════════════════════ */
-var COURSE_NAME  = 'COM-B and PRIME Theory';
-var COURSE_DATES = '17th and 18th March 2026';
-var COURSE_ORG   = 'Brio Wellbeing';
-
-/* ══════════════════════════════════════════════════════
-   Questions
-   ══════════════════════════════════════════════════════ */
 var questions = [
   {
     q: "COM-B stands for which of the following?",
     opts: ["Cognition, Outcomes, Motivation, and Behaviour","Capability, Opportunity, Motivation, and Behaviour","Context, Objectives, Methods, and Behaviour","Capability, Objectives, Mindset, and Behaviour"],
     correct: 1,
-    explanation: "COM-B stands for <strong>Capability, Opportunity, Motivation, and Behaviour</strong>. The model holds that behaviour occurs when all three components — capability, opportunity, and motivation — are simultaneously sufficient."
+    explanation: "COM-B stands for Capability, Opportunity, Motivation, and Behaviour. The model holds that behaviour occurs when all three components are simultaneously sufficient."
   },
   {
     q: "According to COM-B, which of the following best describes 'psychological capability'?",
     opts: ["Physical strength and stamina needed to carry out a behaviour","The availability of time and resources in the environment","Knowledge, cognitive skills, and mental capacity to perform a behaviour","Conscious plans and intentions about future behaviour"],
     correct: 2,
-    explanation: "<strong>Psychological capability</strong> refers to knowledge, cognitive skills, and mental capacity. It is distinct from physical capability (strength and stamina) and from opportunity, which concerns environmental factors."
+    explanation: "Psychological capability refers to knowledge, cognitive skills, and mental capacity. It is distinct from physical capability (strength and stamina) and from opportunity, which concerns environmental factors."
   },
   {
     q: "In PRIME Theory, what does the letter 'R' stand for?",
     opts: ["Regulation","Rewards","Responses","Reflections"],
     correct: 2,
-    explanation: "In PRIME Theory, <strong>R stands for Responses</strong> — automatic reactions to environmental cues that are learned through repetition and can become habitual. PRIME stands for Plans, Responses, Impulses, Motives, and Evaluations."
+    explanation: "In PRIME Theory, R stands for Responses — automatic reactions to environmental cues that are learned through repetition and can become habitual. PRIME stands for Plans, Responses, Impulses, Motives, and Evaluations."
   },
   {
     q: "Which intervention function is most directly aimed at increasing psychological capability?",
     opts: ["Environmental restructuring","Coercion","Education","Restriction"],
     correct: 2,
-    explanation: "<strong>Education</strong> increases knowledge and understanding, making it the function most directly targeting psychological capability. It includes providing information, explaining relationships, and teaching skills."
+    explanation: "Education increases knowledge and understanding, making it the function most directly targeting psychological capability. It includes providing information, explaining relationships, and teaching skills."
   },
   {
     q: "According to PRIME Theory, what happens when competing motives are present?",
     opts: ["Behaviour stops until a conscious decision is made","The strongest motive typically determines the behaviour","Plans always override impulses","Evaluations determine which motive wins"],
     correct: 1,
-    explanation: "PRIME Theory holds that motives compete with each other and <strong>the strongest motive typically wins</strong>, driving behaviour at that moment. The theory emphasises that behaviour is determined by the balance of forces at any given point in time."
+    explanation: "PRIME Theory holds that motives compete with each other and the strongest motive typically wins, driving behaviour at that moment. Behaviour is determined by the balance of forces at any given point in time."
   },
   {
     q: "What is the primary purpose of conducting a 'behavioural diagnosis' before designing an intervention?",
     opts: ["To select the most popular intervention function","To identify which COM-B components are barriers to the target behaviour","To estimate the budget required for the intervention","To choose which behaviour change techniques are best known"],
     correct: 1,
-    explanation: "<strong>Behavioural diagnosis</strong> aims to identify which COM-B components represent barriers to the target behaviour in the specific context. Without this step, practitioners risk selecting interventions based on preference rather than evidence."
+    explanation: "Behavioural diagnosis aims to identify which COM-B components represent barriers to the target behaviour in the specific context. Without this step, practitioners risk selecting interventions based on preference rather than evidence."
   },
   {
     q: "Which statement best describes the relationship between COM-B and PRIME Theory?",
     opts: ["PRIME Theory replaces COM-B for all practical purposes","COM-B and PRIME address completely different phenomena","PRIME provides a more detailed breakdown of motivational processes within the COM-B framework","COM-B is a theoretical model; PRIME is used only for policy-level analysis"],
     correct: 2,
-    explanation: "<strong>PRIME provides a more detailed breakdown of motivational processes</strong> within the COM-B framework. Together, the models can be used for comprehensive behaviour analysis — COM-B for macro-level planning and PRIME for moment-to-moment behaviour generation."
+    explanation: "PRIME provides a more detailed breakdown of motivational processes within the COM-B framework. Together, the models can be used for comprehensive behaviour analysis — COM-B for macro-level planning and PRIME for moment-to-moment behaviour generation."
   },
   {
     q: "Which of the following is an example of 'social opportunity' as defined in the COM-B model?",
     opts: ["A gym being located within walking distance of someone's home","Cultural norms that encourage physical activity","A person's knowledge of how to exercise safely","A person's intention to become more active"],
     correct: 1,
-    explanation: "<strong>Social opportunity</strong> involves cultural norms, social influences, and interpersonal factors that enable or constrain behaviour. Physical opportunity, by contrast, relates to environmental resources, time, and accessibility — such as a gym being nearby."
+    explanation: "Social opportunity involves cultural norms, social influences, and interpersonal factors that enable or constrain behaviour. Physical opportunity relates to environmental resources, time, and accessibility — such as a gym being nearby."
   },
   {
     q: "Which of the following is identified as a common pitfall in behaviour change intervention design?",
     opts: ["Using too many behaviour change techniques in one intervention","Assuming that education alone will change behaviour","Specifying the target behaviour too precisely","Engaging stakeholders before the intervention is finalised"],
     correct: 1,
-    explanation: "<strong>Assuming education alone will change behaviour</strong> is one of the most common pitfalls. Education only addresses psychological capability — it ignores opportunity and motivation barriers, which are often equally or more important in preventing behaviour change."
+    explanation: "Assuming education alone will change behaviour is one of the most common pitfalls. Education only addresses psychological capability — it ignores opportunity and motivation barriers, which are often equally or more important."
   },
   {
     q: "In PRIME Theory, 'evaluations' refer to which of the following?",
     opts: ["Assessments of whether an intervention has been effective","Beliefs and judgments about behaviours and their outcomes","Automatic impulses driven by physiological needs","Conscious plans for future action"],
     correct: 1,
-    explanation: "<strong>Evaluations</strong> in PRIME Theory are beliefs and judgments about behaviours and their outcomes — including beliefs about effectiveness, appropriateness, and consequences. They can be based on personal experience or social learning."
+    explanation: "Evaluations in PRIME Theory are beliefs and judgments about behaviours and their outcomes — including beliefs about effectiveness, appropriateness, and consequences. They can be based on personal experience or social learning."
   }
 ];
 
-/* ══════════════════════════════════════════════════════
-   State
-   ══════════════════════════════════════════════════════ */
 var current = 0, score = 0, answered = false, userAnswers = [];
 var userName = '', userEmail = '';
 
-/* ══════════════════════════════════════════════════════
-   Registration
-   ══════════════════════════════════════════════════════ */
 function startQuiz() {
   var nameEl   = document.getElementById('user-name');
   var emailEl  = document.getElementById('user-email');
@@ -313,9 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-/* ══════════════════════════════════════════════════════
-   Quiz
-   ══════════════════════════════════════════════════════ */
 function render() {
   var q = questions[current];
   document.getElementById('progress').style.width = (current / questions.length * 100) + '%';
@@ -368,9 +333,6 @@ function select(i) {
   nb.textContent = current < questions.length - 1 ? 'Next question \u2192' : 'See my results \u2192';
 }
 
-/* ══════════════════════════════════════════════════════
-   Score screen
-   ══════════════════════════════════════════════════════ */
 function showScore() {
   document.getElementById('quiz').style.display = 'none';
   document.getElementById('score-screen').style.display = 'block';
@@ -379,8 +341,6 @@ function showScore() {
   document.getElementById('score-name').textContent = userName;
   document.getElementById('score-congrats').textContent = 'Congratulations! You have scored';
   document.getElementById('score-big').textContent = score;
-  document.getElementById('sending-msg').textContent = '';
-  document.getElementById('cert-btn').disabled = false;
 
   var list = document.getElementById('results-list');
   list.innerHTML = '';
@@ -392,91 +352,147 @@ function showScore() {
   });
 }
 
-/* ══════════════════════════════════════════════════════
-   Certificate
-   ══════════════════════════════════════════════════════ */
-function buildCertificateHTML() {
+function downloadCertificate() {
+  var { jsPDF } = window.jspdf;
+  var doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+  var W = 297, H = 210;
   var pct = Math.round(score / 10 * 100);
-  return [
-    '<!DOCTYPE html><html><head><meta charset="UTF-8">',
-    '<style>',
-    'body{font-family:Georgia,serif;background:#f7f5f0;margin:0;padding:40px 20px;}',
-    '.cert{max-width:580px;margin:0 auto;background:#fff;border:2px solid #2d5a8e;border-radius:4px;padding:50px 60px;text-align:center;}',
-    '.logos{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}',
-    '.logos img{max-height:50px;max-width:160px;object-fit:contain;}',
-    '.org{font-family:Arial,sans-serif;font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:#2d5a8e;margin-bottom:28px;}',
-    '.present{font-family:Arial,sans-serif;font-size:12px;color:#5a5a55;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;}',
-    '.cert-title{font-size:30px;font-weight:normal;color:#1a1a18;font-style:italic;margin-bottom:4px;}',
-    '.divider{width:50px;height:2px;background:#2d5a8e;margin:18px auto;}',
-    '.recipient{font-size:28px;font-weight:normal;color:#1a1a18;margin:16px 0 8px;}',
-    '.body-text{font-size:15px;color:#5a5a55;line-height:1.7;margin-bottom:6px;}',
-    '.course{font-size:19px;color:#1a1a18;font-style:italic;margin:10px 0 6px;}',
-    '.dates{font-size:14px;color:#5a5a55;margin-bottom:3px;}',
-    '.org-line{font-size:14px;color:#5a5a55;margin-bottom:24px;}',
-    '.score-line{display:inline-block;padding:4px 16px;border-radius:20px;background:#e8f0f9;border:1px solid #2d5a8e;color:#2d5a8e;font-family:Arial,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.05em;margin-bottom:28px;}',
-    '.sig-area{border-top:1px solid #e2dfd8;padding-top:22px;}',
-    '.sig-name{font-size:16px;color:#1a1a18;}',
-    '.sig-role{font-family:Arial,sans-serif;font-size:12px;color:#9a9a94;margin-top:4px;}',
-    '.issued{font-family:Arial,sans-serif;font-size:11px;color:#9a9a94;margin-top:20px;letter-spacing:0.05em;}',
-    '</style></head><body>',
-    '<div class="cert">',
-    '<div class="logos">',
-    '<img src="https://robertjwest.github.io/Unlocking-Behaviour-Change/COMB-training-apps/logo.jpg" alt="Unlocking Behaviour Change CIC">',
-    '<img src="https://robertjwest.github.io/Unlocking-Behaviour-Change/COMB-training-apps/brio-logo.svg" alt="Brio Wellbeing">',
-    '</div>',
-    '<div class="present">Certificate of Completion</div>',
-    '<div class="cert-title">This is to certify that</div>',
-    '<div class="divider"></div>',
-    '<div class="recipient">' + userName + '</div>',
-    '<div class="body-text">has successfully completed the course</div>',
-    '<div class="course">' + COURSE_NAME + '</div>',
-    '<div class="dates">Delivered on ' + COURSE_DATES + '</div>',
-    '<div class="org-line">for ' + COURSE_ORG + '</div>',
-    '<div class="score-line">Quiz score: ' + score + ' / 10 (' + pct + '%)</div>',
-    '<div class="sig-area">',
-    '<div class="sig-name">Professor Robert West</div>',
-    '<div class="sig-role">Director, Unlocking Behaviour Change CIC</div>',
-    '</div>',
-    '<div class="issued">Issued March 2026</div>',
-    '</div></body></html>'
-  ].join('');
-}
 
-function sendCertificate() {
-  var btn = document.getElementById('cert-btn');
-  var el  = document.getElementById('sending-msg');
-  btn.disabled = true;
-  el.textContent = 'Sending your certificate\u2026';
-  el.className = 'sending-msg';
+  /* Background */
+  doc.setFillColor(247, 245, 240);
+  doc.rect(0, 0, W, H, 'F');
 
-  var pct = Math.round(score / 10 * 100);
-  var params = {
-    to_name:          userName,
-    to_email:         userEmail,
-    admin_email:      ADMIN_EMAIL,
-    course_name:      COURSE_NAME,
-    course_dates:     COURSE_DATES,
-    course_org:       COURSE_ORG,
-    score:            score + ' / 10 (' + pct + '%)',
-    certificate_html: buildCertificateHTML()
-  };
+  /* Outer border */
+  doc.setDrawColor(45, 90, 142);
+  doc.setLineWidth(1.5);
+  doc.rect(10, 10, W-20, H-20);
 
-  emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params)
-    .then(function() {
-      el.textContent = '\u2713 Certificate sent to ' + userEmail;
-      el.className = 'sending-msg ok';
-    })
-    .catch(function(err) {
-      console.error('EmailJS error:', err);
-      btn.disabled = false;
-      el.textContent = 'Something went wrong \u2014 please try again or contact robert@unlockingbehaviourchange.com.';
-      el.className = 'sending-msg err';
+  /* Inner border */
+  doc.setLineWidth(0.4);
+  doc.rect(13, 13, W-26, H-26);
+
+  /* Top accent bar */
+  doc.setFillColor(45, 90, 142);
+  doc.rect(10, 10, W-20, 8, 'F');
+
+  /* Organisation name in bar */
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(255, 255, 255);
+  doc.setCharSpace(1.5);
+  var orgText = 'UNLOCKING BEHAVIOUR CHANGE CIC';
+  doc.text(orgText, W/2, 15.5, { align: 'center' });
+  doc.setCharSpace(0);
+
+  /* Certificate of Completion */
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(90, 90, 85);
+  doc.setCharSpace(1);
+  doc.text('CERTIFICATE OF COMPLETION', W/2, 34, { align: 'center' });
+  doc.setCharSpace(0);
+
+  /* This is to certify that */
+  doc.setFont('times', 'italic');
+  doc.setFontSize(14);
+  doc.setTextColor(26, 26, 24);
+  doc.text('This is to certify that', W/2, 46, { align: 'center' });
+
+  /* Divider line */
+  doc.setDrawColor(45, 90, 142);
+  doc.setLineWidth(0.6);
+  doc.line(W/2 - 30, 50, W/2 + 30, 50);
+
+  /* Recipient name */
+  doc.setFont('times', 'normal');
+  doc.setFontSize(28);
+  doc.setTextColor(26, 26, 24);
+  doc.text(userName, W/2, 64, { align: 'center' });
+
+  /* Divider line */
+  doc.setDrawColor(200, 196, 188);
+  doc.setLineWidth(0.3);
+  doc.line(W/2 - 60, 68, W/2 + 60, 68);
+
+  /* Body text */
+  doc.setFont('times', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(90, 90, 85);
+  doc.text('has successfully completed the course', W/2, 78, { align: 'center' });
+
+  /* Course name */
+  doc.setFont('times', 'italic');
+  doc.setFontSize(18);
+  doc.setTextColor(26, 26, 24);
+  doc.text('COM-B and PRIME Theory', W/2, 90, { align: 'center' });
+
+  /* Dates and org */
+  doc.setFont('times', 'normal');
+  doc.setFontSize(12);
+  doc.setTextColor(90, 90, 85);
+  doc.text('Delivered on 17th and 18th March 2026', W/2, 100, { align: 'center' });
+  doc.text('for Brio Wellbeing', W/2, 108, { align: 'center' });
+
+  /* Score badge */
+  doc.setFillColor(232, 240, 249);
+  doc.setDrawColor(45, 90, 142);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(W/2 - 30, 113, 60, 9, 2, 2, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(45, 90, 142);
+  doc.text('Quiz score: ' + score + ' / 10 (' + pct + '%)', W/2, 119, { align: 'center' });
+
+  /* Signature line */
+  doc.setDrawColor(200, 196, 188);
+  doc.setLineWidth(0.3);
+  doc.line(W/2 - 40, 145, W/2 + 40, 145);
+
+  /* Signatory */
+  doc.setFont('times', 'normal');
+  doc.setFontSize(13);
+  doc.setTextColor(26, 26, 24);
+  doc.text('Professor Robert West', W/2, 152, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(154, 154, 148);
+  doc.text('Director, Unlocking Behaviour Change CIC', W/2, 158, { align: 'center' });
+
+  /* Issued date */
+  doc.setFontSize(8);
+  doc.setTextColor(154, 154, 148);
+  doc.text('Issued March 2026', W/2, 168, { align: 'center' });
+
+  /* Bottom accent bar */
+  doc.setFillColor(45, 90, 142);
+  doc.rect(10, H-18, W-20, 8, 'F');
+
+  /* Load and place logos */
+  var ubcUrl  = 'https://robertjwest.github.io/Unlocking-Behaviour-Change/COMB-training-apps/logo.jpg';
+  var brioUrl = 'https://robertjwest.github.io/Unlocking-Behaviour-Change/COMB-training-apps/brio-logo.svg';
+
+  function addLogoAndSave(url, format, x, y, maxW, maxH, callback) {
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      var ratio = Math.min(maxW / img.width, maxH / img.height);
+      var w = img.width * ratio;
+      var h = img.height * ratio;
+      try { doc.addImage(img, format, x - w/2, y - h/2, w, h); } catch(e) {}
+      callback();
+    };
+    img.onerror = function() { callback(); };
+    img.src = url;
+  }
+
+  addLogoAndSave(ubcUrl, 'JPEG', W * 0.25, H - 14, 40, 6, function() {
+    addLogoAndSave(brioUrl, 'SVG', W * 0.75, H - 14, 40, 6, function() {
+      doc.save(userName.replace(/\s+/g, '_') + '_COM-B_Certificate.pdf');
     });
+  });
 }
 
-/* ══════════════════════════════════════════════════════
-   Restart
-   ══════════════════════════════════════════════════════ */
 function restart() {
   current = 0; score = 0; answered = false; userAnswers = [];
   document.getElementById('score-screen').style.display = 'none';
