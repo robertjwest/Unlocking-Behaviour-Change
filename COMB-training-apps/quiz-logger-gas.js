@@ -1,0 +1,76 @@
+/**
+ * COM-B / PRIME Quiz — Result Logger
+ * ====================================
+ * Paste this entire script into a new Google Apps Script project
+ * (script.google.com → New project), then deploy as a Web App.
+ *
+ * SETUP STEPS
+ * ───────────
+ * 1. Open script.google.com and create a new project.
+ *    Name it something like "Quiz Logger".
+ *
+ * 2. Replace the SHEET_ID value below with the ID of the Google Sheet
+ *    where you want results stored. The Sheet ID is the long string in
+ *    the sheet's URL between /d/ and /edit.
+ *    Example URL:
+ *      https://docs.google.com/spreadsheets/d/1aBcDeFgHiJkLmNo/edit
+ *    Sheet ID: 1aBcDeFgHiJkLmNo
+ *
+ *    You can use an existing sheet or create a new one — either way,
+ *    give the tab the name set in SHEET_TAB below (default: "Quiz Results").
+ *
+ * 3. Click Deploy → New deployment.
+ *    - Type: Web App
+ *    - Execute as: Me
+ *    - Who has access: Anyone
+ *    Click Deploy, authorise when prompted, and copy the Web App URL.
+ *
+ * 4. Paste that URL into the GAS_URL variable in comb-prime-quiz.html.
+ *
+ * That's it. Each time someone completes the quiz their name, email,
+ * score, pass/fail status, and timestamp are appended as a new row.
+ * The sheet also doubles as a CSV — use File → Download → CSV to
+ * export at any time.
+ */
+
+var SHEET_ID  = 'YOUR_GOOGLE_SHEET_ID';   // ← replace with your Sheet ID
+var SHEET_TAB = 'Quiz Results';            // ← tab name (create it if it doesn't exist)
+
+/**
+ * Handles GET requests from the quiz.
+ * Parameters: name, email, score, passed, course, org, ts
+ */
+function doGet(e) {
+  try {
+    var ss  = SpreadsheetApp.openById(SHEET_ID);
+    var sh  = ss.getSheetByName(SHEET_TAB);
+
+    // Create the tab and header row if it doesn't exist yet
+    if (!sh) {
+      sh = ss.insertSheet(SHEET_TAB);
+      sh.appendRow(['Timestamp', 'Name', 'Email', 'Score', 'Passed', 'Course', 'Organisation']);
+      sh.getRange(1, 1, 1, 7).setFontWeight('bold');
+      sh.setFrozenRows(1);
+    }
+
+    var p = e.parameter;
+    sh.appendRow([
+      p.ts     || new Date().toISOString(),
+      p.name   || '',
+      p.email  || '',
+      p.score  || '',
+      p.passed || '',
+      p.course || '',
+      p.org    || ''
+    ]);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'ok' }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
