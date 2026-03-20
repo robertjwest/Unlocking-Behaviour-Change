@@ -398,38 +398,12 @@ body {
 .rdot.no  { background: #fce0e0; color: var(--red);   }
 
 @media print {
-  @page {
-    margin: 1.5cm;
-  }
-  html, body {
-    height: 100%;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-  body * {
-    visibility: hidden !important;
-  }
-  #certificate-wrap {
-    visibility: visible !important;
-    display: block !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    margin: 0 !important;
-    padding: 2cm !important;
-    box-sizing: border-box !important;
-  }
-  #certificate-wrap * {
-    visibility: visible !important;
-  }
-  .cert-box {
-    border: 2px solid #2a5c8f !important;
-    padding: 3rem !important;
-    text-align: center !important;
-    position: relative !important;
-  }
+  .shell > *,
+  .shell > * * { display: none !important; }
+  #certificate-wrap,
+  #certificate-wrap * { display: block !important; visibility: visible !important; }
+  .cert-box { border: 2px solid #2a5c8f; page-break-inside: avoid; }
+  .cert-title, .cert-name, .cert-body, .cert-course, .cert-date, .cert-sig, .cert-label { display: block !important; }
 }
 </style>
 </head>
@@ -514,7 +488,7 @@ body {
    Google Apps Script Web App (see companion script).
    Set LOGGING_ENABLED to false to disable CSV logging.
    ═══════════════════════════════════════════════════ */
-var GAS_URL         = 'https://script.google.com/macros/s/AKfycbzXhbHJAq8LTQR5FyFlREj7_JQYucYORRp1UmiVwOoG2VcZRwpxf6dtuh4WAKBeACD52g/exec';
+var GAS_URL         = 'https://script.google.com/macros/s/AKfycbzXhbHJAq8LTQR5FyFlREj7_JQYucYORRp1UmiVwOoG2VcZRwpxf6dtuh4WAKBeACD52g/exec';   // e.g. https://script.google.com/macros/s/XXX/exec
 var LOGGING_ENABLED = true;
 
 var PASS_MARK    = 6;
