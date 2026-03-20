@@ -398,16 +398,12 @@ body {
 .rdot.no  { background: #fce0e0; color: var(--red);   }
 
 @media print {
-  body * { visibility: hidden; }
-  #certificate-wrap, #certificate-wrap * { visibility: visible; }
-  #certificate-wrap {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    display: block !important;
-  }
+  .shell > *,
+  .shell > * * { display: none !important; }
+  #certificate-wrap,
+  #certificate-wrap * { display: block !important; visibility: visible !important; }
+  .cert-box { border: 2px solid #2a5c8f; page-break-inside: avoid; }
+  .cert-title, .cert-name, .cert-body, .cert-course, .cert-date, .cert-sig, .cert-label { display: block !important; }
 }
 </style>
 </head>
