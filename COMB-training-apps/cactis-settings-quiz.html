@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CACTIS — Specifying Intervention Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:       #1c1c2e;
+  --paper:     #faf8f5;
+  --sand:      #f0ebe2;
+  --rule:      #d6cfc3;
+  --accent:    #2a5c8f;
+  --green:     #1e7a4a;
+  --red:       #b92a2a;
+  --radius:    8px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  padding: 2rem 1rem 4rem;
+}
+
+.shell {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ── Header ─────────────────────────────── */
+.site-header {
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding: 1.25rem 0 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.kicker {
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #888;
+}
+.site-header h1 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  line-height: 1.2;
+}
+.site-header h1 em { font-style: italic; color: var(--accent); }
+.site-header p {
+  font-size: 0.9rem;
+  color: #555;
+  margin-top: 0.3rem;
+}
+
+/* ── Progress ─────────────────────────── */
+.progress-bar {
+  height: 3px;
+  background: var(--rule);
+  border-radius: 2px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.q-counter {
+  font-size: 0.75rem;
+  color: #888;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+/* ── Question ─────────────────────────── */
+#question {
+  font-family: 'Source Serif 4', serif;
+  font-weight: 400;
+  font-size: 1.1rem;
+  line-height: 1.65;
+  margin-bottom: 1.2rem;
+  color: var(--ink);
+}
+
+/* ── Options ─────────────────────────── */
+.options { display: flex; flex-direction: column; gap: 8px; }
+.opt-btn {
+  text-align: left;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.opt-btn:hover:not(:disabled) {
+  background: var(--sand);
+  border-color: #bbb;
+}
+.opt-btn:disabled { cursor: default; }
+.opt-btn.correct {
+  background: #eaf4ee;
+  border-color: #6ec49a;
+  color: var(--green);
+  font-weight: 500;
+}
+.opt-btn.wrong {
+  background: #fdf0f0;
+  border-color: #e08080;
+  color: var(--red);
+}
+.opt-btn.reveal {
+  background: #eaf4ee;
+  border-color: #6ec49a;
+  color: var(--green);
+}
+
+/* ── Explanation ─────────────────────── */
+.explanation {
+  display: none;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--accent);
+  background: var(--sand);
+  border-radius: 0 6px 6px 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: #333;
+}
+.explanation.show { display: block; }
+.verdict {
+  font-weight: 600;
+  margin-right: 0.25em;
+}
+.verdict.ok  { color: var(--green); }
+.verdict.no  { color: var(--red);   }
+
+/* ── Next button ─────────────────────── */
+.next-btn {
+  display: none;
+  margin-top: 1.1rem;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.next-btn.show { display: inline-block; }
+.next-btn:hover { background: var(--sand); }
+
+/* ── Score screen ────────────────────── */
+#score-screen { display: none; }
+.score-top {
+  text-align: center;
+  padding: 2rem 1rem 1.5rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+  background: var(--sand);
+}
+.score-number {
+  font-family: 'Source Serif 4', serif;
+  font-size: 3.5rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--accent);
+}
+.score-denom {
+  font-size: 1.1rem;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+.score-message {
+  font-family: 'Source Serif 4', serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* ── Action buttons ──────────────────── */
+.action-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border: 1px solid var(--rule);
+  background: #fff;
+  color: var(--ink);
+  transition: background 0.12s;
+}
+.btn:hover { background: var(--sand); }
+
+/* ── Results list ────────────────────── */
+.results-heading {
+  font-family: 'Source Serif 4', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+  color: #444;
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
+}
+.result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.85rem;
+  color: #333;
+  line-height: 1.45;
+}
+.rdot {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 1px;
+}
+.rdot.ok  { background: #c9ecd8; color: var(--green); }
+.rdot.no  { background: #fce0e0; color: var(--red);   }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="kicker">CACTIS · Knowledge check</div>
+    <h1>Specifying <em>Intervention Settings</em></h1>
+    <p>5 questions on how to specify settings in a CACTIS intervention design.</p>
+  </header>
+
+  <!-- Quiz -->
+  <div id="quiz">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="q-counter" id="counter"></div>
+    <div id="question"></div>
+    <div class="options" id="options"></div>
+    <div class="explanation" id="explanation">
+      <span class="verdict" id="verdict"></span>
+      <span id="exp-text"></span>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()"></button>
+  </div>
+
+  <!-- Score screen -->
+  <div id="score-screen">
+    <div class="score-top">
+      <div class="score-number" id="score-big"></div>
+      <div class="score-denom">out of 5</div>
+      <div class="score-message" id="score-message"></div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn" onclick="restart()">Try again</button>
+    </div>
+
+    <div class="results-heading">Question-by-question summary</div>
+    <div id="results-list"></div>
+  </div>
+
+</div>
+
+<script>
+var questions = [
+  {
+    q: "In CACTIS, what are intervention settings?",
+    opts: [
+      "The behaviour change techniques selected for the intervention",
+      "The locations, facilities and/or contexts where the intervention will take place",
+      "The population group targeted by the intervention",
+      "The outcomes used to evaluate whether the intervention has worked"
+    ],
+    correct: 1,
+    explanation: "<strong>Intervention settings are the locations, facilities and/or contexts where the intervention will take place.</strong> They are distinct from the target population, the behaviour change techniques used, and the outcomes measured."
+  },
+  {
+    q: "Under what condition do settings need to be specified in CACTIS?",
+    opts: [
+      "Settings always need to be specified, no matter what",
+      "Settings only need to be specified for interventions delivered in healthcare contexts",
+      "Settings need to be specified if they are not obvious from the population or behavioural goal, and could affect the nature of the intervention",
+      "Settings only need to be specified once the behaviour change techniques have been chosen"
+    ],
+    correct: 2,
+    explanation: "Settings need to be specified <strong>when they are not already obvious from the description of the population or behavioural goal, and when they could affect the nature of the intervention.</strong> If the setting is self-evident from the context, explicit specification may not be necessary."
+  },
+  {
+    q: "What should you do if you cannot fully specify the intervention setting early in the design process?",
+    opts: [
+      "Leave the setting blank and return to it only after the intervention has been piloted",
+      "Choose the most commonly used setting for that type of intervention",
+      "Specify a list of potential settings to consider",
+      "Abandon the CACTIS process until the setting is confirmed"
+    ],
+    correct: 2,
+    explanation: "If the setting cannot be fully determined early on — for example because it depends on which behaviour change techniques are chosen, or on budget constraints — you should <strong>specify a list of potential settings to consider.</strong> This keeps the design process moving while acknowledging the uncertainty."
+  },
+  {
+    q: "Why might the choice of setting depend on the behaviour change techniques selected?",
+    opts: [
+      "Because behaviour change techniques are only effective in certain geographical regions",
+      "Because different techniques require different physical environments or access conditions to be delivered effectively",
+      "Because the setting determines which population can be targeted",
+      "Because CACTIS requires settings and techniques to be specified simultaneously"
+    ],
+    correct: 1,
+    explanation: "Some behaviour change techniques require specific physical environments or access conditions to be delivered effectively — for example, a technique involving group discussion needs a suitable meeting space. <strong>The setting and the techniques are therefore interdependent</strong>, which is why the setting may not be fully specifiable until the techniques have been chosen."
+  },
+  {
+    q: "Which of the following is the best example of a well-specified intervention setting as described in CACTIS?",
+    opts: [
+      "Somewhere accessible to the target population",
+      "Any appropriate community venue",
+      "Hospital outpatient departments in the UK",
+      "A setting chosen by the intervention facilitator"
+    ],
+    correct: 2,
+    explanation: "<strong>Hospital outpatient departments in the UK</strong> is a well-specified setting because it names the type of facility, gives a geographical scope, and provides enough information to inform the nature of the intervention. Vague descriptions like 'somewhere accessible' or 'any appropriate venue' give the designer — and any AI tool being used — very little to work with."
+  }
+];
+
+var current    = 0;
+var score      = 0;
+var answered   = false;
+var userAnswers = [];
+
+function render() {
+  var q = questions[current];
+  document.getElementById('counter').textContent = 'Question ' + (current + 1) + ' of ' + questions.length;
+  document.getElementById('progress').style.width = (current / questions.length * 100) + '%';
+  document.getElementById('question').textContent = q.q;
+
+  var opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.opts.forEach(function(o, i) {
+    var b = document.createElement('button');
+    b.className = 'opt-btn';
+    b.textContent = String.fromCharCode(65 + i) + '.  ' + o;
+    b.onclick = function() { select(i); };
+    opts.appendChild(b);
+  });
+
+  document.getElementById('explanation').className = 'explanation';
+  document.getElementById('verdict').textContent = '';
+  document.getElementById('exp-text').innerHTML = '';
+  document.getElementById('next-btn').className = 'next-btn';
+  answered = false;
+}
+
+function select(i) {
+  if (answered) return;
+  answered = true;
+  var q  = questions[current];
+  var ok = (i === q.correct);
+  if (ok) score++;
+  userAnswers.push({ q: q.q, correct: ok });
+
+  var btns = document.querySelectorAll('.opt-btn');
+  btns.forEach(function(b, idx) {
+    b.disabled = true;
+    if (idx === q.correct) b.classList.add(i === q.correct ? 'correct' : 'reveal');
+    else if (idx === i)    b.classList.add('wrong');
+  });
+
+  var v = document.getElementById('verdict');
+  v.textContent = ok ? '✓ Correct. ' : '✗ Not quite. ';
+  v.className   = 'verdict ' + (ok ? 'ok' : 'no');
+  document.getElementById('exp-text').innerHTML = q.explanation;
+  document.getElementById('explanation').className = 'explanation show';
+
+  var nb = document.getElementById('next-btn');
+  nb.className   = 'next-btn show';
+  nb.textContent = current < questions.length - 1 ? 'Next question →' : 'See my results →';
+}
+
+function nextQ() {
+  current++;
+  if (current >= questions.length) showScore();
+  else render();
+}
+
+function showScore() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'block';
+  document.getElementById('progress').style.width = '100%';
+
+  var pct = Math.round(score / questions.length * 100);
+  document.getElementById('score-big').textContent = score;
+
+  var msg;
+  if (pct === 100)    msg = 'A perfect score — excellent understanding of intervention settings.';
+  else if (pct >= 80) msg = 'Good grasp of the material — just one area to revisit.';
+  else if (pct >= 60) msg = 'A reasonable start — a few concepts worth reviewing before moving on.';
+  else                msg = 'Some key ideas need further review — try reading the guidance again and retaking the quiz.';
+  document.getElementById('score-message').textContent = msg;
+
+  var list = document.getElementById('results-list');
+  list.innerHTML = '';
+  userAnswers.forEach(function(a, i) {
+    var item = document.createElement('div');
+    item.className = 'result-item';
+    item.innerHTML =
+      '<span class="rdot ' + (a.correct ? 'ok' : 'no') + '">' + (a.correct ? '✓' : '✗') + '</span>' +
+      '<span>' + (i + 1) + '. ' + a.q + '</span>';
+    list.appendChild(item);
+  });
+}
+
+function restart() {
+  current = 0; score = 0; answered = false; userAnswers = [];
+  document.getElementById('score-screen').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
