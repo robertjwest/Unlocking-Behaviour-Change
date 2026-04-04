@@ -737,33 +737,28 @@ function saveResults(gaps) {
     return;
   }
 
-  // Use a form submission via a hidden iframe to avoid CORS issues with Apps Script
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = SHEET_URL;
-  form.target = 'hidden-iframe';
+  // Send via GET request with encoded payload — avoids CORS issues with Apps Script
+  const encoded = encodeURIComponent(JSON.stringify({ responses: rows }));
+  const url = SHEET_URL + '?payload=' + encoded;
 
-  const input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'payload';
-  input.value = JSON.stringify({ responses: rows });
-  form.appendChild(input);
+  const script = document.createElement('script');
+  script.src = url + '&callback=onSaveComplete';
+  script.onerror = () => {
+    status.textContent = '⚠ Could not reach the server — please check your connection.';
+    status.className = 'save-status error';
+  };
+  document.body.appendChild(script);
+}
 
-  let iframe = document.getElementById('hidden-iframe');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.name = 'hidden-iframe';
-    iframe.id = 'hidden-iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
+function onSaveComplete(response) {
+  const status = document.getElementById('save-status');
+  if (response && response.status === 'ok') {
+    status.textContent = '✓ Responses saved anonymously. Thank you.';
+    status.className = 'save-status saved';
+  } else {
+    status.textContent = '⚠ Could not save responses — please try again.';
+    status.className = 'save-status error';
   }
-
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-
-  status.textContent = '✓ Responses saved anonymously. Thank you.';
-  status.className = 'save-status saved';
 }
 
 function restart() {
