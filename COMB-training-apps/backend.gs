@@ -13,7 +13,7 @@
 //   6. Copy the Web App URL into index.html (SHEET_URL variable)
 // ============================================================
 
-const SHEET_ID = '1HPKp35ZG9mSHy8n3zTYFhe136oBM9suDzFM4wWEbPU4';
+const SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE';
 const SHEET_NAME = 'Responses';
 
 // Column headers written on first run
@@ -29,7 +29,11 @@ const HEADERS = [
 
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    // Accepts both form submissions (payload param) and direct JSON post
+    const raw = (e.parameter && e.parameter.payload)
+      ? e.parameter.payload
+      : e.postData.contents;
+    const data = JSON.parse(raw);
     const rows = data.responses;
 
     const ss = SpreadsheetApp.openById(SHEET_ID);
