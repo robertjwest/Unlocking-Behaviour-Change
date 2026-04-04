@@ -737,22 +737,19 @@ function saveResults(gaps) {
     return;
   }
 
+  // Google Apps Script requires no-cors mode and text/plain content-type
+  // We can't read the response back, so show success optimistically
+  status.textContent = '✓ Responses saved anonymously. Thank you.';
+  status.className = 'save-status saved';
+
   fetch(SHEET_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ responses: rows })
   })
-  .then(r => r.json())
-  .then(d => {
-    if (d.status === 'ok') {
-      status.textContent = '✓ Responses saved anonymously. Thank you.';
-      status.className = 'save-status saved';
-    } else {
-      throw new Error('Bad response');
-    }
-  })
   .catch(() => {
-    status.textContent = '⚠ Could not save responses — please check the backend URL.';
+    status.textContent = '⚠ Could not reach the server — please check your connection.';
     status.className = 'save-status error';
   });
 }
