@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Ethics: Should vs Would</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --ink-light: #4a4a6a;
+    --ink-faint: #8888aa;
+    --paper: #faf9f6;
+    --paper-warm: #f2f0eb;
+    --rule: #dddbd4;
+    --should: #1d4e6b;
+    --would: #6b3a1d;
+    --should-light: #e8f0f5;
+    --would-light: #f5ede8;
+    --accent: #c8973a;
+    --selected-should: #1d4e6b;
+    --selected-would: #6b3a1d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 80px,
+      rgba(255,255,255,0.02) 80px,
+      rgba(255,255,255,0.02) 81px
+    );
+    pointer-events: none;
+  }
+  .header-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 400;
+    line-height: 1.25;
+    margin-bottom: 0.75rem;
+  }
+  header h1 em {
+    font-style: italic;
+    color: #c8b89a;
+  }
+  header p {
+    font-size: 0.95rem;
+    color: #b0a898;
+    max-width: 560px;
+    margin: 0 auto;
+    font-weight: 300;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar-wrap {
+    background: var(--paper-warm);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.75rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .progress-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .progress-count {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--ink-light);
+    white-space: nowrap;
+  }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── SCENARIO CARD ── */
+  .scenario-card {
+    display: none;
+    animation: fadeIn 0.35s ease;
+  }
+  .scenario-card.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .scenario-number {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .scenario-principle {
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    margin-bottom: 1.25rem;
+  }
+  .scenario-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.45rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+  .scenario-text {
+    font-size: 1rem;
+    color: var(--ink-light);
+    font-style: italic;
+    border-left: 3px solid var(--accent);
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 2rem;
+    background: var(--paper-warm);
+    border-radius: 0 6px 6px 0;
+    line-height: 1.65;
+  }
+
+  /* ── RESPONSE COLUMNS ── */
+  .response-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 580px) {
+    .response-columns { grid-template-columns: 1fr; }
+  }
+
+  .response-col h3 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .col-should h3 { color: var(--should); border-color: var(--should); }
+  .col-would  h3 { color: var(--would);  border-color: var(--would); }
+
+  .col-should h3::before { content: '◈'; font-size: 0.9rem; }
+  .col-would  h3::before { content: '◇'; font-size: 0.9rem; }
+
+  .col-subtitle {
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    font-weight: 300;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* ── OPTION BUTTONS ── */
+  .option-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: white;
+    border: 1.5px solid var(--rule);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.88rem;
+    color: var(--ink-light);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    line-height: 1.45;
+  }
+  .option-btn:hover {
+    border-color: var(--ink-light);
+    color: var(--ink);
+    background: var(--paper-warm);
+  }
+  .col-should .option-btn.selected {
+    background: var(--should-light);
+    border-color: var(--should);
+    color: var(--should);
+    font-weight: 600;
+  }
+  .col-would .option-btn.selected {
+    background: var(--would-light);
+    border-color: var(--would);
+    color: var(--would);
+    font-weight: 600;
+  }
+
+  /* ── NAV ── */
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+  .btn {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.65rem 1.4rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-light);
+    border: 1.5px solid var(--rule);
+  }
+  .btn-ghost:hover { border-color: var(--ink-light); color: var(--ink); }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-primary:hover { background: #2e2e50; }
+  .btn-primary:disabled {
+    background: var(--rule);
+    color: var(--ink-faint);
+    cursor: not-allowed;
+  }
+  .nav-hint {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  /* ── RESULTS ── */
+  #results-screen { display: none; }
+
+  .results-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .results-header .check {
+    width: 48px; height: 48px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    margin: 0 auto 1rem;
+  }
+  .results-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+  .results-header p {
+    font-size: 0.9rem;
+    color: var(--ink-faint);
+  }
+
+  .save-status {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--ink-faint);
+    margin-bottom: 2rem;
+    padding: 0.65rem 1rem;
+    background: var(--paper-warm);
+    border-radius: 6px;
+    border: 1px solid var(--rule);
+  }
+  .save-status.saved { color: #2a7a4a; background: #f0f8f3; border-color: #b0dcc0; }
+  .save-status.error { color: #a83232; background: #fdf0f0; border-color: #e0b0b0; }
+
+  .result-item {
+    margin-bottom: 1.5rem;
+    padding: 1.25rem 1.4rem;
+    background: white;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+  }
+  .result-item-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.85rem;
+    color: var(--ink);
+  }
+  .result-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  @media (max-width: 500px) { .result-pair { grid-template-columns: 1fr; } }
+
+  .result-answer {
+    padding: 0.6rem 0.85rem;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .result-answer-label {
+    font-size: 0.67rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .result-should { background: var(--should-light); }
+  .result-should .result-answer-label { color: var(--should); }
+  .result-would  { background: var(--would-light); }
+  .result-would  .result-answer-label { color: var(--would); }
+
+  .result-gap {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+  .result-gap.same { color: #2a7a4a; }
+  .result-gap.different { color: #a83232; }
+
+  .gap-summary {
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .gap-summary h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 400;
+    margin-bottom: 0.4rem;
+  }
+  .gap-number {
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin: 0.5rem 0;
+  }
+  .gap-summary p { font-size: 0.85rem; color: #b0a898; }
+
+  .restart-btn {
+    display: block;
+    margin: 2rem auto 0;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    background: transparent;
+    border: 1.5px solid var(--rule);
+    color: var(--ink-light);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .restart-btn:hover { border-color: var(--ink); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Behavioural Research Ethics</div>
+  <h1>Should vs <em>Would</em></h1>
+  <p>Ten scenarios exploring the gap between what we think we ought to do and what we'd probably do in practice.</p>
+</header>
+
+<div class="progress-bar-wrap" id="progress-wrap">
+  <span class="progress-label">Progress</span>
+  <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  <span class="progress-count" id="progress-count">0 / 10</span>
+</div>
+
+<main>
+  <div id="quiz-screen">
+    <!-- Scenarios injected by JS -->
+  </div>
+  <div id="results-screen">
+    <div class="results-header">
+      <div class="check">✓</div>
+      <h2>Your responses</h2>
+      <p>Below is a summary of your choices across all ten scenarios.</p>
+    </div>
+    <div class="save-status" id="save-status">Saving your anonymous responses…</div>
+    <div class="gap-summary">
+      <h3>Ethical gap score</h3>
+      <div class="gap-number" id="gap-number">—</div>
+      <p>scenarios where your "should" and "would" responses differed</p>
+    </div>
+    <div id="results-list"></div>
+    <button class="restart-btn" onclick="restart()">Start again</button>
+  </div>
+</main>
+
+<script>
+const SHEET_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+
+const scenarios = [
+  {
+    id: 1,
+    title: "The censorship clause",
+    principle: "Principle 7 — independence of publication",
+    text: "A well-funded industry body offers to sponsor a study on product safety, but the contract gives them the right to block publication if they dislike the findings.",
+    options: [
+      "Decline the funding outright",
+      "Accept but negotiate to remove the clause first",
+      "Accept — the funding is too valuable to pass up",
+      "Consult colleagues before deciding"
+    ]
+  },
+  {
+    id: 2,
+    title: "The inconvenient null result",
+    principle: "Principles 4 & 10 — accuracy and replicability",
+    text: "You complete a pre-registered study. The results are null and, frankly, embarrassing for a theory you publicly champion. A colleague suggests 'reframing' the analysis.",
+    options: [
+      "Publish exactly as pre-registered, null result and all",
+      "Explore alternative analyses but label them clearly as exploratory",
+      "Delay publication indefinitely",
+      "Consult a statistician to check whether the pre-registered analysis was flawed"
+    ]
+  },
+  {
+    id: 3,
+    title: "The harm industry contract",
+    principle: "Principle 6 — declining to work with harm industries",
+    text: "A major alcohol industry body approaches you to evaluate a 'responsible drinking' campaign. The fee would fund two PhD students for three years.",
+    options: [
+      "Decline — this is a harm industry, regardless of the topic",
+      "Accept — an independent evaluation may yield genuine public health value",
+      "Accept the funding but donate any overhead to a public health organisation",
+      "Seek your institution's ethics committee guidance before deciding"
+    ]
+  },
+  {
+    id: 4,
+    title: "The difficult colleague",
+    principle: "Principle 2 — respect for colleagues",
+    text: "A senior collaborator consistently takes credit for junior researchers' work and dismisses your private concerns. You are about to co-present at a major conference.",
+    options: [
+      "Raise it directly with them before the conference",
+      "Say nothing — preserve the working relationship",
+      "Raise it with your Head of Department",
+      "Address it publicly if they misattribute credit during the presentation"
+    ]
+  },
+  {
+    id: 5,
+    title: "The overconfident press release",
+    principle: "Principle 4 — calibrated confidence in findings",
+    text: "Your institution's communications team wants to issue a press release claiming your observational findings 'prove' a causal link. Your journal paper is carefully hedged throughout.",
+    options: [
+      "Insist the wording is corrected before release",
+      "Suggest amended wording but accept it if they push back",
+      "Let it go — press releases always oversimplify",
+      "Ask to review but ultimately defer to the comms team's judgement"
+    ]
+  },
+  {
+    id: 6,
+    title: "The missing data problem",
+    principle: "Principle 9 — accuracy and transparency in reporting",
+    text: "You discover that a co-author on a published paper omitted an entire data collection site because it made the effect size smaller. The paper has already appeared in a high-profile journal.",
+    options: [
+      "Insist on issuing a correction or pursuing retraction",
+      "Discuss privately with the co-author and give them a chance to self-correct",
+      "Report directly to the journal editor without prior discussion",
+      "Do nothing — you were not the lead author and were unaware at the time"
+    ]
+  },
+  {
+    id: 7,
+    title: "The community left out",
+    principle: "Principle 8 — community engagement",
+    text: "You are designing an intervention study targeting a marginalised community. The timeline is tight and involving community representatives properly would delay the start by three months.",
+    options: [
+      "Delay the study and involve the community properly from the outset",
+      "Proceed but establish a community advisory panel for a later phase",
+      "Proceed — the intervention is evidence-based and clearly in their interests",
+      "Negotiate an extension with the funder to allow genuine co-design"
+    ]
+  },
+  {
+    id: 8,
+    title: "The biased reviewer",
+    principle: "Principle 5 — awareness and countering of biases",
+    text: "You are asked to peer-review a paper whose conclusions strongly contradict your own published theoretical work. You believe your critique would be entirely objective.",
+    options: [
+      "Declare the conflict of interest and decline to review",
+      "Declare the conflict but offer to review if the editor still wishes",
+      "Review without declaring — your objectivity is not genuinely in question",
+      "Agree to review, declare, and suggest the editor seeks an additional independent reviewer"
+    ]
+  },
+  {
+    id: 9,
+    title: "The social media company",
+    principle: "Principle 6 — working with organisations of concern",
+    text: "A large social media platform funds a research programme on adolescent mental health. Your institution is keen for you to apply. You have serious concerns about the platform's own practices regarding young people.",
+    options: [
+      "Decline to apply",
+      "Apply but insist on full publication freedom as a non-negotiable condition",
+      "Apply — independent research on the topic is better than no research",
+      "Raise concerns formally with your institution before making any decision"
+    ]
+  },
+  {
+    id: 10,
+    title: "The funder's preferred outcome",
+    principle: "Principles 4 & 7 — scientific integrity and independence",
+    text: "A government funder informally signals that findings supportive of a current policy would be 'helpful' for continued programme funding. Your data are genuinely equivocal.",
+    options: [
+      "Report the data exactly as they are, without any adjustment in emphasis",
+      "Emphasise the findings consistent with the policy without suppressing others",
+      "Formally flag the pressure to your institution's research integrity office",
+      "Seek advice from your professional association's ethics body"
+    ]
+  }
+];
+
+// State
+let answers = {}; // { scenarioId: { should: optionText, would: optionText } }
+let current = 0;
+
+// Generate a random anonymous respondent ID for this session
+const respondentId = 'R-' + Math.random().toString(36).slice(2, 9).toUpperCase();
+
+// Build quiz
+const quizScreen = document.getElementById('quiz-screen');
+
+scenarios.forEach((s, idx) => {
+  const card = document.createElement('div');
+  card.className = 'scenario-card' + (idx === 0 ? ' active' : '');
+  card.id = 'scenario-' + idx;
+
+  card.innerHTML = `
+    <div class="scenario-number">Scenario ${s.id} of ${scenarios.length}</div>
+    <div class="scenario-principle">${s.principle}</div>
+    <div class="scenario-title">${s.title}</div>
+    <div class="scenario-text">${s.text}</div>
+    <div class="response-columns">
+      <div class="response-col col-should">
+        <h3>What do you think you should do? <span class="col-subtitle">Ideal response</span></h3>
+        ${s.options.map((opt, oi) => `
+          <button class="option-btn" data-idx="${idx}" data-col="should" data-opt="${oi}" onclick="selectOption(this)">
+            ${opt}
+          </button>`).join('')}
+      </div>
+      <div class="response-col col-would">
+        <h3>What do you think you would most probably do? <span class="col-subtitle">Honest response</span></h3>
+        ${s.options.map((opt, oi) => `
+          <button class="option-btn" data-idx="${idx}" data-col="would" data-opt="${oi}" onclick="selectOption(this)">
+            ${opt}
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="nav-row">
+      ${idx > 0 ? `<button class="btn btn-ghost" onclick="goTo(${idx-1})">← Back</button>` : '<span></span>'}
+      <span class="nav-hint" id="hint-${idx}">Select one answer in each column</span>
+      ${idx < scenarios.length - 1
+        ? `<button class="btn btn-primary" id="next-${idx}" onclick="goTo(${idx+1})" disabled>Next →</button>`
+        : `<button class="btn btn-primary" id="next-${idx}" onclick="showResults()" disabled>See my results →</button>`
+      }
+    </div>
+  `;
+  quizScreen.appendChild(card);
+});
+
+function selectOption(btn) {
+  const idx = +btn.dataset.idx;
+  const col = btn.dataset.col;
+  const opt = +btn.dataset.opt;
+  const s = scenarios[idx];
+
+  // Deselect siblings in same column
+  document.querySelectorAll(`.option-btn[data-idx="${idx}"][data-col="${col}"]`)
+    .forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+
+  // Save answer
+  if (!answers[idx]) answers[idx] = {};
+  answers[idx][col] = s.options[opt];
+
+  updateProgress(idx);
+}
+
+function updateProgress(idx) {
+  const a = answers[idx] || {};
+  const complete = a.should && a.would;
+  const nextBtn = document.getElementById('next-' + idx);
+  const hint = document.getElementById('hint-' + idx);
+  if (nextBtn) nextBtn.disabled = !complete;
+  if (hint) hint.textContent = complete ? 'Ready to continue' : 'Select one answer in each column';
+
+  // Global progress
+  const done = Object.values(answers).filter(a => a.should && a.would).length;
+  document.getElementById('progress-fill').style.width = (done / scenarios.length * 100) + '%';
+  document.getElementById('progress-count').textContent = done + ' / ' + scenarios.length;
+}
+
+function goTo(idx) {
+  document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('scenario-' + idx).classList.add('active');
+  current = idx;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showResults() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'none';
+  document.getElementById('results-screen').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Count gaps
+  let gaps = 0;
+  const list = document.getElementById('results-list');
+  list.innerHTML = '';
+
+  scenarios.forEach((s, idx) => {
+    const a = answers[idx] || {};
+    const same = a.should === a.would;
+    if (!same) gaps++;
+
+    const item = document.createElement('div');
+    item.className = 'result-item';
+    item.innerHTML = `
+      <div class="result-item-title">${s.id}. ${s.title}</div>
+      <div class="result-pair">
+        <div class="result-answer result-should">
+          <div class="result-answer-label">Should do</div>
+          ${a.should || '<em>Not answered</em>'}
+        </div>
+        <div class="result-answer result-would">
+          <div class="result-answer-label">Would do</div>
+          ${a.would || '<em>Not answered</em>'}
+        </div>
+      </div>
+      ${a.should && a.would ? `
+        <div class="result-gap ${same ? 'same' : 'different'}">
+          ${same ? '✓ Consistent — same response for both' : '⚠ Gap — different responses for should and would'}
+        </div>` : ''}
+    `;
+    list.appendChild(item);
+  });
+
+  document.getElementById('gap-number').textContent = gaps;
+  saveResults(gaps);
+}
+
+function saveResults(gaps) {
+  const ts = new Date().toISOString();
+  const rows = scenarios.map((s, idx) => {
+    const a = answers[idx] || {};
+    return {
+      respondent_id: respondentId,
+      timestamp: ts,
+      scenario_id: s.id,
+      scenario_title: s.title,
+      should_do: a.should || '',
+      would_do: a.would || '',
+      gap: a.should && a.would ? (a.should !== a.would ? 1 : 0) : ''
+    };
+  });
+  rows.push({
+    respondent_id: respondentId,
+    timestamp: ts,
+    scenario_id: 'SUMMARY',
+    scenario_title: 'Total gap score',
+    should_do: '',
+    would_do: '',
+    gap: gaps
+  });
+
+  const status = document.getElementById('save-status');
+
+  if (!SHEET_URL || SHEET_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+    status.textContent = 'ℹ Responses not saved — no backend URL configured yet.';
+    return;
+  }
+
+  fetch(SHEET_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ responses: rows })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.status === 'ok') {
+      status.textContent = '✓ Responses saved anonymously. Thank you.';
+      status.className = 'save-status saved';
+    } else {
+      throw new Error('Bad response');
+    }
+  })
+  .catch(() => {
+    status.textContent = '⚠ Could not save responses — please check the backend URL.';
+    status.className = 'save-status error';
+  });
+}
+
+function restart() {
+  answers = {};
+  current = 0;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  scenarios.forEach((s, idx) => updateProgress(idx));
+  document.getElementById('results-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+  document.getElementById('progress-wrap').style.display = 'flex';
+  goTo(0);
+}
+</script>
+</body>
+</html>
