@@ -737,13 +737,18 @@ function saveResults(gaps) {
     return;
   }
 
-  // Send via GET request with encoded payload — avoids CORS issues with Apps Script
-  const encoded = encodeURIComponent(JSON.stringify({ responses: rows }));
-  const url = SHEET_URL + '?payload=' + encoded;
+  // Send via JSONP GET request
+  const payload = JSON.stringify({ responses: rows });
+  const encoded = encodeURIComponent(payload);
+  const fullUrl = SHEET_URL + '?payload=' + encoded + '&callback=onSaveComplete';
+  console.log('Sending to:', SHEET_URL);
+  console.log('Payload length:', payload.length);
 
   const script = document.createElement('script');
-  script.src = url + '&callback=onSaveComplete';
-  script.onerror = () => {
+  script.src = fullUrl;
+  script.onload = () => console.log('Script loaded OK');
+  script.onerror = (err) => {
+    console.error('Script load error:', err);
     status.textContent = '⚠ Could not reach the server — please check your connection.';
     status.className = 'save-status error';
   };
