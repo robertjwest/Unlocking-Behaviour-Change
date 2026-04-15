@@ -211,6 +211,7 @@
     font-size: 0.9rem;
     color: var(--ink);
     transition: border-color 0.2s;
+    appearance: textfield;
     -moz-appearance: textfield;
   }
 
@@ -348,13 +349,130 @@
 
   .linked-slider {
     width: 100%;
-    margin-top: 0.4rem;
+    margin-top: 0.35rem;
     display: none;
     accent-color: var(--accent);
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    height: 22px;
+    cursor: pointer;
+  }
+
+  .linked-slider::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--ink-2);
+    border-radius: 2px;
+  }
+
+  .linked-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--ink-2);
+    margin-top: -8px;
+    transition: transform 0.08s ease;
+  }
+
+  .linked-slider:active::-webkit-slider-thumb {
+    transform: scale(1.08);
+  }
+
+  .linked-slider::-moz-range-track {
+    height: 2px;
+    background: var(--ink-2);
+    border: none;
+    border-radius: 2px;
+  }
+
+  .linked-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--ink-2);
+  }
+
+  .slider-numberline {
+    display: none;
+    position: relative;
+    height: 12px;
+    margin-top: 0.05rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .slider-numberline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 5px;
+    height: 1px;
+    background: rgba(74, 69, 64, 0.45);
+  }
+
+  .slider-notch {
+    position: absolute;
+    left: calc((var(--notch) * 100%) / var(--notch-count));
+    top: 3px;
+    width: 1px;
+    height: 5px;
+    background: rgba(74, 69, 64, 0.45);
+    transform: translateX(-0.5px);
+  }
+
+  .slider-notch.major {
+    top: 2px;
+    height: 8px;
+    background: rgba(26, 23, 20, 0.6);
+  }
+
+  .slider-range-controls {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+  }
+
+  .slider-bound {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .slider-bound span {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .slider-bound input {
+    padding: 0.35rem 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.74rem;
+    color: var(--ink);
   }
 
   .slider-mode .linked-slider {
     display: block;
+  }
+
+  .slider-mode .slider-numberline {
+    display: block;
+  }
+
+  .slider-mode .slider-range-controls {
+    display: grid;
   }
 
   .slider-mode .panel.active {
@@ -1069,6 +1187,7 @@
   let sliderModeEnabled = false;
   let currentTab = 'means';
   let syncingSlider = false;
+  const sliderNotchCount = 10;
 
   function captureDefaultNumericValues() {
     document.querySelectorAll('input[type="number"]').forEach(input => {
@@ -1111,6 +1230,11 @@
     return typeByPanel[panel.id] || getCurrentType();
   }
 
+  function isOptionalCIInput(input) {
+    const id = input?.id || '';
+    return /-(ci-lo|ci-hi)$/.test(id);
+  }
+
   function inferSliderBounds(input) {
     const minAttr = parseNum(input.min);
     const maxAttr = parseNum(input.max);
@@ -1121,21 +1245,99 @@
       (Number.isFinite(minAttr) && minAttr >= 0) ||
       ((id.startsWith('or-') || id.startsWith('rr-')) && !id.includes('prior-mean'));
 
-    const base = Math.max(Math.abs(val ?? 1), 1);
-    let min = Number.isFinite(minAttr) ? minAttr : (positiveOnly ? Math.max(0.0001, (val ?? 1) * 0.2) : -2 * base);
-    let max = Number.isFinite(maxAttr) ? maxAttr : (positiveOnly ? Math.max((val ?? min * 2) * 2, min * 4) : 2 * base);
+    function getBlankAnchor() {
+      // Avoid unusably tiny ranges when OR/RR fields have very small min attrs (e.g. 0.0001).
+      if (id.startsWith('or-') || id.startsWith('rr-')) {
+        if (id.endsWith('-pval')) return 0.05;
+        if (id.endsWith('-se') || id.endsWith('-prior-sd')) return 0.5;
+        if (id.includes('prior-mean')) return 0;
+        return 1;
+      }
+      if (Number.isFinite(minAttr)) return minAttr;
+      return positiveOnly ? 1 : 0;
+    }
 
-    if (!(max > min)) max = min + (positiveOnly ? Math.max(min, 1) : 1);
+    const anchor = Number.isFinite(val)
+      ? val
+      : getBlankAnchor();
+    const defaultHalfRange = Math.min(Math.abs(anchor) * 0.1, 10);
+    let halfRange = Number.isFinite(defaultHalfRange) && defaultHalfRange > 0
+      ? defaultHalfRange
+      : (positiveOnly ? 0.5 : 1);
+
+    let min = anchor - halfRange;
+    let max = anchor + halfRange;
+
+    if (Number.isFinite(minAttr)) min = Math.max(min, minAttr);
+    if (Number.isFinite(maxAttr)) max = Math.min(max, maxAttr);
+
+    if (!(max > min)) {
+      halfRange = Math.max(halfRange, 0.1);
+      min = Number.isFinite(minAttr) ? minAttr : (anchor - halfRange);
+      max = Number.isFinite(maxAttr) ? maxAttr : (anchor + halfRange);
+      if (!(max > min)) max = min + 0.01;
+    }
 
     let step = 0;
     if (input.step && input.step !== 'any') step = parseFloat(input.step);
     if (!Number.isFinite(step) || step <= 0) {
-      step = roundTo((max - min) / 400, 6);
+      step = roundTo((max - min) / 200, 6);
       if (step <= 0) step = 0.01;
     }
 
-    const value = Number.isFinite(val) ? Math.min(max, Math.max(min, val)) : min;
-    return { min, max, step, value };
+    const value = Number.isFinite(val) ? Math.min(max, Math.max(min, val)) : Math.min(max, Math.max(min, anchor));
+    return { min, max, step, value, hardMin: minAttr, hardMax: maxAttr };
+  }
+
+  function applyLightSnapToNotch(slider, rawValue) {
+    const value = Number(rawValue);
+    const min = parseNum(slider.min);
+    const max = parseNum(slider.max);
+    if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || !(max > min)) return value;
+
+    const notchCount = Math.max(2, parseInt(slider.dataset.notchCount || String(sliderNotchCount), 10));
+    const interval = (max - min) / notchCount;
+    if (!Number.isFinite(interval) || interval <= 0) return value;
+
+    let nearest = min + Math.round((value - min) / interval) * interval;
+    nearest = Math.min(max, Math.max(min, nearest));
+
+    // Gentle snap only when close to a notch.
+    const snapThreshold = interval * 0.16;
+    return Math.abs(value - nearest) <= snapThreshold ? nearest : value;
+  }
+
+  function syncSliderBoundInputs(slider) {
+    const minInput = document.getElementById(slider.dataset.minInputId || '');
+    const maxInput = document.getElementById(slider.dataset.maxInputId || '');
+    const minLabel = document.getElementById(slider.dataset.minLabelId || '');
+    const maxLabel = document.getElementById(slider.dataset.maxLabelId || '');
+    if (!minInput || !maxInput) return;
+
+    const targetInput = document.getElementById(slider.dataset.forInput || '');
+    const isBlankOptionalCI =
+      slider.dataset.optionalCi === '1' &&
+      targetInput &&
+      String(targetInput.value || '').trim() === '';
+
+    if (minLabel) minLabel.textContent = isBlankOptionalCI ? 'Slider min (optional)' : 'Slider min';
+    if (maxLabel) maxLabel.textContent = isBlankOptionalCI ? 'Slider max (optional)' : 'Slider max';
+
+    const min = parseFloat(slider.min);
+    const max = parseFloat(slider.max);
+    if (isBlankOptionalCI) {
+      minInput.value = '';
+      maxInput.value = '';
+      minInput.placeholder = 'optional';
+      maxInput.placeholder = 'optional';
+    } else {
+      minInput.value = Number.isFinite(min) ? roundTo(min, 6) : '';
+      maxInput.value = Number.isFinite(max) ? roundTo(max, 6) : '';
+      minInput.placeholder = '';
+      maxInput.placeholder = '';
+    }
+    minInput.step = slider.step;
+    maxInput.step = slider.step;
   }
 
   function setSliderFromInput(slider, input) {
@@ -1144,15 +1346,27 @@
 
     let min = parseFloat(slider.min);
     let max = parseFloat(slider.max);
+    const hardMin = parseNum(slider.dataset.hardMin);
+    const hardMax = parseNum(slider.dataset.hardMax);
+
     if (n < min) {
-      slider.min = n;
       min = n;
     }
     if (n > max) {
-      slider.max = n;
       max = n;
     }
+
+    if (Number.isFinite(hardMin)) min = Math.max(min, hardMin);
+    if (Number.isFinite(hardMax)) max = Math.min(max, hardMax);
+    if (!(max > min)) {
+      const step = Math.max(parseNum(slider.step) || 0.01, 0.0001);
+      max = min + step;
+    }
+
+    slider.min = min;
+    slider.max = max;
     slider.value = Math.min(max, Math.max(min, n));
+    syncSliderBoundInputs(slider);
   }
 
   function buildLinkedSliders() {
@@ -1169,10 +1383,113 @@
       slider.max = cfg.max;
       slider.step = cfg.step;
       slider.value = cfg.value;
+      slider.dataset.hardMin = Number.isFinite(cfg.hardMin) ? String(cfg.hardMin) : '';
+      slider.dataset.hardMax = Number.isFinite(cfg.hardMax) ? String(cfg.hardMax) : '';
+      slider.dataset.notchCount = String(sliderNotchCount);
+
+      const numberline = document.createElement('div');
+      numberline.className = 'slider-numberline';
+      numberline.style.setProperty('--notch-count', String(sliderNotchCount));
+      for (let i = 0; i <= sliderNotchCount; i++) {
+        const notch = document.createElement('span');
+        notch.className = 'slider-notch' + ((i % 5 === 0) ? ' major' : '');
+        notch.style.setProperty('--notch', String(i));
+        numberline.appendChild(notch);
+      }
+
+      const controls = document.createElement('div');
+      controls.className = 'slider-range-controls';
+
+      const minWrap = document.createElement('label');
+      minWrap.className = 'slider-bound';
+      const minText = document.createElement('span');
+      minText.textContent = 'Slider min';
+      minText.id = input.id + '-slider-min-label';
+      const minInput = document.createElement('input');
+      minInput.type = 'number';
+      minInput.step = cfg.step;
+      minInput.value = roundTo(cfg.min, 6);
+      minInput.id = input.id + '-slider-min';
+      if (Number.isFinite(cfg.hardMin)) minInput.min = cfg.hardMin;
+      if (Number.isFinite(cfg.hardMax)) minInput.max = cfg.hardMax;
+      minWrap.append(minText, minInput);
+
+      const maxWrap = document.createElement('label');
+      maxWrap.className = 'slider-bound';
+      const maxText = document.createElement('span');
+      maxText.textContent = 'Slider max';
+      maxText.id = input.id + '-slider-max-label';
+      const maxInput = document.createElement('input');
+      maxInput.type = 'number';
+      maxInput.step = cfg.step;
+      maxInput.value = roundTo(cfg.max, 6);
+      maxInput.id = input.id + '-slider-max';
+      if (Number.isFinite(cfg.hardMin)) maxInput.min = cfg.hardMin;
+      if (Number.isFinite(cfg.hardMax)) maxInput.max = cfg.hardMax;
+      maxWrap.append(maxText, maxInput);
+
+      controls.append(minWrap, maxWrap);
+      slider.dataset.minInputId = minInput.id;
+      slider.dataset.maxInputId = maxInput.id;
+      slider.dataset.minLabelId = minText.id;
+      slider.dataset.maxLabelId = maxText.id;
+      slider.dataset.optionalCi = isOptionalCIInput(input) ? '1' : '';
+
+      function applyBoundsFromInputs(changedBound) {
+        let nextMin = parseNum(minInput.value);
+        let nextMax = parseNum(maxInput.value);
+        if (!Number.isFinite(nextMin) || !Number.isFinite(nextMax)) return;
+
+        const step = Math.max(parseNum(slider.step) || 0.01, 0.0001);
+        const hardMin = parseNum(slider.dataset.hardMin);
+        const hardMax = parseNum(slider.dataset.hardMax);
+
+        if (Number.isFinite(hardMin)) nextMin = Math.max(nextMin, hardMin);
+        if (Number.isFinite(hardMax)) nextMax = Math.min(nextMax, hardMax);
+
+        if (!(nextMax > nextMin)) {
+          if (changedBound === 'min') {
+            nextMax = nextMin + step;
+          } else {
+            nextMin = nextMax - step;
+          }
+          if (Number.isFinite(hardMin)) nextMin = Math.max(nextMin, hardMin);
+          if (Number.isFinite(hardMax)) nextMax = Math.min(nextMax, hardMax);
+          if (!(nextMax > nextMin)) nextMax = nextMin + step;
+        }
+
+        slider.min = nextMin;
+        slider.max = nextMax;
+
+        const target = document.getElementById(slider.dataset.forInput);
+        if (!target) {
+          syncSliderBoundInputs(slider);
+          return;
+        }
+
+        const targetVal = parseNum(target.value);
+        if (!Number.isFinite(targetVal)) {
+          slider.value = nextMin;
+          syncSliderBoundInputs(slider);
+          return;
+        }
+
+        const clamped = Math.min(nextMax, Math.max(nextMin, targetVal));
+        slider.value = clamped;
+        if (clamped !== targetVal) {
+          syncingSlider = true;
+          target.value = clamped;
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+          syncingSlider = false;
+        }
+        syncSliderBoundInputs(slider);
+      }
 
       slider.addEventListener('input', () => {
         const target = document.getElementById(slider.dataset.forInput);
         if (!target) return;
+        const snappedValue = applyLightSnapToNotch(slider, slider.value);
+        if (Number.isFinite(snappedValue)) slider.value = snappedValue;
         syncingSlider = true;
         target.value = slider.value;
         target.dispatchEvent(new Event('input', { bubbles: true }));
@@ -1181,10 +1498,20 @@
 
       input.addEventListener('input', () => {
         if (syncingSlider) return;
+        if (parseNum(input.value) === null) {
+          syncSliderBoundInputs(slider);
+          return;
+        }
         setSliderFromInput(slider, input);
       });
 
+      minInput.addEventListener('change', () => applyBoundsFromInputs('min'));
+      maxInput.addEventListener('change', () => applyBoundsFromInputs('max'));
+
       input.insertAdjacentElement('afterend', slider);
+      slider.insertAdjacentElement('afterend', numberline);
+      numberline.insertAdjacentElement('afterend', controls);
+      syncSliderBoundInputs(slider);
     });
   }
 
@@ -1197,6 +1524,25 @@
       const input = document.getElementById(slider.dataset.forInput);
       if (!input) return;
       setSliderFromInput(slider, input);
+    });
+  }
+
+  function resetPanelSliderRanges(type) {
+    const panelSuffix = panelByType[type];
+    const panel = panelSuffix ? document.getElementById('panel-' + panelSuffix) : null;
+    if (!panel) return;
+
+    panel.querySelectorAll('.linked-slider').forEach(slider => {
+      const input = document.getElementById(slider.dataset.forInput);
+      if (!input) return;
+
+      const cfg = inferSliderBounds(input);
+      const n = parseNum(input.value);
+      slider.min = cfg.min;
+      slider.max = cfg.max;
+      slider.step = cfg.step;
+      slider.value = Number.isFinite(n) ? Math.min(cfg.max, Math.max(cfg.min, n)) : cfg.value;
+      syncSliderBoundInputs(slider);
     });
   }
 
@@ -1271,7 +1617,7 @@
 
     deriveFromCI(type);
     deriveFromPval(type);
-    syncPanelSliders(type);
+    resetPanelSliderRanges(type);
     clearError(type);
     if (sliderModeEnabled) {
       scheduleCalculate(type);
@@ -1294,7 +1640,7 @@
 
     deriveFromCI(type);
     deriveFromPval(type);
-    syncPanelSliders(type);
+    resetPanelSliderRanges(type);
     clearError(type);
     if (sliderModeEnabled) {
       scheduleCalculate(type);
