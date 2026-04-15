@@ -208,6 +208,47 @@
   }
 
   /* Prior section */
+  /* Input method switcher */
+  .input-method {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+
+  .method-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: all 0.15s;
+    border-right: 1.5px solid var(--border);
+  }
+
+  .method-btn:last-child { border-right: none; }
+
+  .method-btn.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .method-btn:hover:not(.active) {
+    background: var(--border);
+    color: var(--ink);
+  }
+
+  .method-section { display: none; }
+  .method-section.active { display: block; }
+
   .prior-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -475,33 +516,64 @@
     <div class="card">
       <div class="card-title">Study Results — Mean Difference</div>
 
-      <div class="field-group">
-        <div class="field">
-          <label>Observed Mean Difference
-            <span class="hint">e.g. 2.5</span>
-          </label>
-          <input type="number" id="md-mean" placeholder="0.0" step="any">
+      <div class="input-method">
+        <button class="method-btn active" onclick="switchMethod('md','stats')">Estimate + SE / CI</button>
+        <button class="method-btn" onclick="switchMethod('md','pval')">One-tailed p-value</button>
+      </div>
+
+      <!-- Stats input -->
+      <div class="method-section active" id="md-method-stats">
+        <div class="field-group">
+          <div class="field">
+            <label>Observed Mean Difference
+              <span class="hint">e.g. 2.5</span>
+            </label>
+            <input type="number" id="md-mean" placeholder="0.0" step="any">
+          </div>
+          <div class="field">
+            <label>Standard Error of Mean Diff
+              <span class="hint">or enter CI below</span>
+            </label>
+            <input type="number" id="md-sem" placeholder="0.0" step="any" min="0">
+          </div>
         </div>
-        <div class="field">
-          <label>Standard Error of Mean Diff
-            <span class="hint">or enter CI below</span>
-          </label>
-          <input type="number" id="md-sem" placeholder="0.0" step="any" min="0">
+        <div class="field-group">
+          <div class="field">
+            <label>Lower 95% CI
+              <span class="hint">optional — derives SE</span>
+            </label>
+            <input type="number" id="md-ci-lo" placeholder="optional" step="any" oninput="deriveFromCI('md')">
+          </div>
+          <div class="field">
+            <label>Upper 95% CI
+              <span class="hint">optional — derives SE</span>
+            </label>
+            <input type="number" id="md-ci-hi" placeholder="optional" step="any" oninput="deriveFromCI('md')">
+          </div>
         </div>
       </div>
 
-      <div class="field-group">
-        <div class="field">
-          <label>Lower 95% CI
-            <span class="hint">optional — derives SE</span>
-          </label>
-          <input type="number" id="md-ci-lo" placeholder="optional" step="any" oninput="deriveFromCI('md')">
+      <!-- p-value input -->
+      <div class="method-section" id="md-method-pval">
+        <div class="field-group">
+          <div class="field">
+            <label>Observed Mean Difference
+              <span class="hint">the point estimate</span>
+            </label>
+            <input type="number" id="md-pval-mean" placeholder="0.0" step="any" oninput="deriveFromPval('md')">
+          </div>
+          <div class="field">
+            <label>One-tailed p-value
+              <span class="hint">in the direction of the observed effect</span>
+            </label>
+            <input type="number" id="md-pval" placeholder="e.g. 0.03" step="any" min="0.00001" max="0.99999" oninput="deriveFromPval('md')">
+          </div>
         </div>
-        <div class="field">
-          <label>Upper 95% CI
-            <span class="hint">optional — derives SE</span>
-          </label>
-          <input type="number" id="md-ci-hi" placeholder="optional" step="any" oninput="deriveFromCI('md')">
+        <div class="field-group">
+          <div class="field full">
+            <label>Derived SE <span class="hint">computed from p-value — used in the calculation</span></label>
+            <input type="number" id="md-pval-se-display" placeholder="—" step="any" min="0" readonly style="background:var(--surface2); color:var(--ink-3);">
+          </div>
         </div>
       </div>
 
@@ -565,33 +637,64 @@
     <div class="card">
       <div class="card-title">Study Results — Odds Ratio</div>
 
-      <div class="field-group">
-        <div class="field">
-          <label>Observed Odds Ratio
-            <span class="hint">on natural scale, e.g. 1.54</span>
-          </label>
-          <input type="number" id="or-or" placeholder="1.0" step="any" min="0.0001">
+      <div class="input-method">
+        <button class="method-btn active" onclick="switchMethod('or','stats')">Estimate + SE / CI</button>
+        <button class="method-btn" onclick="switchMethod('or','pval')">One-tailed p-value</button>
+      </div>
+
+      <!-- Stats input -->
+      <div class="method-section active" id="or-method-stats">
+        <div class="field-group">
+          <div class="field">
+            <label>Observed Odds Ratio
+              <span class="hint">on natural scale, e.g. 1.54</span>
+            </label>
+            <input type="number" id="or-or" placeholder="1.0" step="any" min="0.0001">
+          </div>
+          <div class="field">
+            <label>SE of log(OR)
+              <span class="hint">or enter CI below</span>
+            </label>
+            <input type="number" id="or-se" placeholder="0.0" step="any" min="0">
+          </div>
         </div>
-        <div class="field">
-          <label>SE of log(OR)
-            <span class="hint">or enter CI below</span>
-          </label>
-          <input type="number" id="or-se" placeholder="0.0" step="any" min="0">
+        <div class="field-group">
+          <div class="field">
+            <label>Lower 95% CI (OR scale)
+              <span class="hint">optional — derives SE</span>
+            </label>
+            <input type="number" id="or-ci-lo" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('or')">
+          </div>
+          <div class="field">
+            <label>Upper 95% CI (OR scale)
+              <span class="hint">optional — derives SE</span>
+            </label>
+            <input type="number" id="or-ci-hi" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('or')">
+          </div>
         </div>
       </div>
 
-      <div class="field-group">
-        <div class="field">
-          <label>Lower 95% CI (OR scale)
-            <span class="hint">optional — derives SE</span>
-          </label>
-          <input type="number" id="or-ci-lo" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('or')">
+      <!-- p-value input -->
+      <div class="method-section" id="or-method-pval">
+        <div class="field-group">
+          <div class="field">
+            <label>Observed Odds Ratio
+              <span class="hint">on natural scale, e.g. 1.54</span>
+            </label>
+            <input type="number" id="or-pval-or" placeholder="1.0" step="any" min="0.0001" oninput="deriveFromPval('or')">
+          </div>
+          <div class="field">
+            <label>One-tailed p-value
+              <span class="hint">in the direction of the observed OR</span>
+            </label>
+            <input type="number" id="or-pval" placeholder="e.g. 0.03" step="any" min="0.00001" max="0.99999" oninput="deriveFromPval('or')">
+          </div>
         </div>
-        <div class="field">
-          <label>Upper 95% CI (OR scale)
-            <span class="hint">optional — derives SE</span>
-          </label>
-          <input type="number" id="or-ci-hi" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('or')">
+        <div class="field-group">
+          <div class="field full">
+            <label>Derived SE of log(OR) <span class="hint">computed from p-value — used in the calculation</span></label>
+            <input type="number" id="or-pval-se-display" placeholder="—" step="any" min="0" readonly style="background:var(--surface2); color:var(--ink-3);">
+          </div>
         </div>
       </div>
 
@@ -655,33 +758,64 @@
     <div class="card">
       <div class="card-title">Study Results — Risk Ratio</div>
 
-      <div class="field-group">
-        <div class="field">
-          <label>Observed Risk Ratio
-            <span class="hint">on natural scale, e.g. 0.75</span>
-          </label>
-          <input type="number" id="rr-rr" placeholder="1.0" step="any" min="0.0001">
+      <div class="input-method">
+        <button class="method-btn active" onclick="switchMethod('rr','stats')">Estimate + SE / CI</button>
+        <button class="method-btn" onclick="switchMethod('rr','pval')">One-tailed p-value</button>
+      </div>
+
+      <!-- Stats input -->
+      <div class="method-section active" id="rr-method-stats">
+        <div class="field-group">
+          <div class="field">
+            <label>Observed Risk Ratio
+              <span class="hint">on natural scale, e.g. 0.75</span>
+            </label>
+            <input type="number" id="rr-rr" placeholder="1.0" step="any" min="0.0001">
+          </div>
+          <div class="field">
+            <label>SE of log(RR)
+              <span class="hint">or enter CI below</span>
+            </label>
+            <input type="number" id="rr-se" placeholder="0.0" step="any" min="0">
+          </div>
         </div>
-        <div class="field">
-          <label>SE of log(RR)
-            <span class="hint">or enter CI below</span>
-          </label>
-          <input type="number" id="rr-se" placeholder="0.0" step="any" min="0">
+        <div class="field-group">
+          <div class="field">
+            <label>Lower 95% CI (RR scale)
+              <span class="hint">optional — derives SE</span>
+            </label>
+            <input type="number" id="rr-ci-lo" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('rr')">
+          </div>
+          <div class="field">
+            <label>Upper 95% CI (RR scale)
+              <span class="hint">optional — derives SE</span>
+            </label>
+            <input type="number" id="rr-ci-hi" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('rr')">
+          </div>
         </div>
       </div>
 
-      <div class="field-group">
-        <div class="field">
-          <label>Lower 95% CI (RR scale)
-            <span class="hint">optional — derives SE</span>
-          </label>
-          <input type="number" id="rr-ci-lo" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('rr')">
+      <!-- p-value input -->
+      <div class="method-section" id="rr-method-pval">
+        <div class="field-group">
+          <div class="field">
+            <label>Observed Risk Ratio
+              <span class="hint">on natural scale, e.g. 0.75</span>
+            </label>
+            <input type="number" id="rr-pval-rr" placeholder="1.0" step="any" min="0.0001" oninput="deriveFromPval('rr')">
+          </div>
+          <div class="field">
+            <label>One-tailed p-value
+              <span class="hint">in the direction of the observed RR</span>
+            </label>
+            <input type="number" id="rr-pval" placeholder="e.g. 0.03" step="any" min="0.00001" max="0.99999" oninput="deriveFromPval('rr')">
+          </div>
         </div>
-        <div class="field">
-          <label>Upper 95% CI (RR scale)
-            <span class="hint">optional — derives SE</span>
-          </label>
-          <input type="number" id="rr-ci-hi" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('rr')">
+        <div class="field-group">
+          <div class="field full">
+            <label>Derived SE of log(RR) <span class="hint">computed from p-value — used in the calculation</span></label>
+            <input type="number" id="rr-pval-se-display" placeholder="—" step="any" min="0" readonly style="background:var(--surface2); color:var(--ink-3);">
+          </div>
         </div>
       </div>
 
@@ -771,6 +905,84 @@
     const poly = t * (0.3193815 + t * (-0.3565638 + t * (1.7814779 + t * (-1.8212560 + t * 1.3302744))));
     const cdf = 1 - d * poly;
     return z > 0 ? cdf : 1 - cdf;
+  }
+
+  // ── Input method switcher ─────────────────────────────────────────────
+  const activeMethods = { md: 'stats', or: 'stats', rr: 'stats' };
+
+  function switchMethod(type, method) {
+    activeMethods[type] = method;
+    // Update buttons
+    const btns = document.querySelectorAll(`#panel-${type === 'md' ? 'means' : type} .method-btn`);
+    btns.forEach((b, i) => b.classList.toggle('active', (i === 0 && method === 'stats') || (i === 1 && method === 'pval')));
+    // Show/hide sections
+    document.getElementById(type + '-method-stats').classList.toggle('active', method === 'stats');
+    document.getElementById(type + '-method-pval').classList.toggle('active', method === 'pval');
+    // Hide result on switch
+    document.getElementById(type + '-result').classList.remove('show');
+    clearError(type);
+  }
+
+  // ── Inverse normal CDF (for p → z) ───────────────────────────────────
+  // Beasley-Springer-Moro approximation
+  function normalQuantile(p) {
+    const a = [2.50662823884, -18.61500062529, 41.39119773534, -25.44106049637];
+    const b = [-8.47351093090, 23.08336743743, -21.06224101826, 3.13082909833];
+    const c = [0.3374754822726147, 0.9761690190917186, 0.1607979714918209,
+               0.0276438810333863, 0.0038405729373609, 0.0003951896511349,
+               0.0000321767881768, 0.0000002888167364, 0.0000003960315187];
+    const q = p - 0.5;
+    let r, z;
+    if (Math.abs(q) <= 0.42) {
+      r = q * q;
+      z = q * (((a[3]*r+a[2])*r+a[1])*r+a[0]) / ((((b[3]*r+b[2])*r+b[1])*r+b[0])*r+1);
+    } else {
+      r = p < 0.5 ? p : 1 - p;
+      r = Math.sqrt(-Math.log(r));
+      z = c[0]+r*(c[1]+r*(c[2]+r*(c[3]+r*(c[4]+r*(c[5]+r*(c[6]+r*(c[7]+r*c[8])))))));
+      if (q < 0) z = -z;
+    }
+    return z;
+  }
+
+  // ── Derive SE from one-tailed p-value ────────────────────────────────
+  // For a two-sided test: p_one_tail = p_two_sided / 2
+  // z = Φ⁻¹(1 - p_one_tail)  [z-score corresponding to the one-tailed p]
+  // SE = |estimate| / z   (since z = estimate / SE under H0 threshold at 0/1)
+  function deriveFromPval(type) {
+    if (type === 'md') {
+      const mean = parseFloat(document.getElementById('md-pval-mean').value);
+      const p = parseFloat(document.getElementById('md-pval').value);
+      if (!isNaN(mean) && !isNaN(p) && p > 0 && p < 1 && mean !== 0) {
+        const z = normalQuantile(1 - p);
+        if (z > 0) {
+          const se = Math.abs(mean) / z;
+          document.getElementById('md-pval-se-display').value = se.toFixed(4);
+        }
+      }
+    } else if (type === 'or') {
+      const orVal = parseFloat(document.getElementById('or-pval-or').value);
+      const p = parseFloat(document.getElementById('or-pval').value);
+      if (!isNaN(orVal) && orVal > 0 && !isNaN(p) && p > 0 && p < 1) {
+        const logOR = Math.log(orVal);
+        const z = normalQuantile(1 - p);
+        if (z > 0 && logOR !== 0) {
+          const se = Math.abs(logOR) / z;
+          document.getElementById('or-pval-se-display').value = se.toFixed(4);
+        }
+      }
+    } else if (type === 'rr') {
+      const rrVal = parseFloat(document.getElementById('rr-pval-rr').value);
+      const p = parseFloat(document.getElementById('rr-pval').value);
+      if (!isNaN(rrVal) && rrVal > 0 && !isNaN(p) && p > 0 && p < 1) {
+        const logRR = Math.log(rrVal);
+        const z = normalQuantile(1 - p);
+        if (z > 0 && logRR !== 0) {
+          const se = Math.abs(logRR) / z;
+          document.getElementById('rr-pval-se-display').value = se.toFixed(4);
+        }
+      }
+    }
   }
 
   // ── Tab switching ─────────────────────────────────────────────────────
@@ -869,16 +1081,28 @@
   // ── Main calculate dispatcher ─────────────────────────────────────────
   function calculate(type) {
     clearError(type);
+    const method = activeMethods[type];
 
     if (type === 'md') {
-      const mean = parseFloat(document.getElementById('md-mean').value);
-      const sem = parseFloat(document.getElementById('md-sem').value);
+      let mean, sem;
+      if (method === 'pval') {
+        mean = parseFloat(document.getElementById('md-pval-mean').value);
+        const p = parseFloat(document.getElementById('md-pval').value);
+        if (isNaN(mean)) return showError('md', 'Please enter the observed mean difference.');
+        if (isNaN(p) || p <= 0 || p >= 1) return showError('md', 'Please enter a valid one-tailed p-value (between 0 and 1).');
+        if (mean === 0) return showError('md', 'Mean difference cannot be zero when deriving SE from a p-value.');
+        const z = normalQuantile(1 - p);
+        if (z <= 0) return showError('md', 'p-value too large to derive a meaningful SE.');
+        sem = Math.abs(mean) / z;
+      } else {
+        mean = parseFloat(document.getElementById('md-mean').value);
+        sem = parseFloat(document.getElementById('md-sem').value);
+        if (isNaN(mean)) return showError('md', 'Please enter the observed mean difference.');
+        if (isNaN(sem) || sem <= 0) return showError('md', 'Please enter a valid standard error (> 0), or derive it from CI values.');
+      }
+
       const threshold = parseFloat(document.getElementById('md-threshold').value) || 0;
       const usePrior = document.getElementById('md-use-prior').checked;
-
-      if (isNaN(mean)) return showError('md', 'Please enter the observed mean difference.');
-      if (isNaN(sem) || sem <= 0) return showError('md', 'Please enter a valid standard error (> 0), or derive it from CI values.');
-
       let priorMean = null, priorSd = null;
       if (usePrior) {
         priorMean = parseFloat(document.getElementById('md-prior-mean').value);
@@ -888,6 +1112,7 @@
       }
 
       const { prob, postMean, postSd } = bayesianPosteriorProb(mean, sem, threshold, priorMean, priorSd);
+      const pEquiv = (1 - prob).toFixed(4);
       const details = [
         { label: 'Observed mean diff', value: mean.toFixed(4) },
         { label: 'Standard error', value: sem.toFixed(4) },
@@ -895,20 +1120,33 @@
         { label: 'Posterior mean', value: postMean.toFixed(4) },
         { label: 'Posterior SD', value: postSd.toFixed(4) },
         { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
+        { label: 'Equiv. 1-tail p (threshold)', value: pEquiv },
       ];
       showResult('md', prob, details);
     }
 
     else if (type === 'or') {
-      const orVal = parseFloat(document.getElementById('or-or').value);
-      const se = parseFloat(document.getElementById('or-se').value);
+      let orVal, se;
+      if (method === 'pval') {
+        orVal = parseFloat(document.getElementById('or-pval-or').value);
+        const p = parseFloat(document.getElementById('or-pval').value);
+        if (isNaN(orVal) || orVal <= 0) return showError('or', 'Please enter a valid odds ratio (> 0).');
+        if (isNaN(p) || p <= 0 || p >= 1) return showError('or', 'Please enter a valid one-tailed p-value (between 0 and 1).');
+        const logOR = Math.log(orVal);
+        if (logOR === 0) return showError('or', 'OR cannot be exactly 1 when deriving SE from a p-value.');
+        const z = normalQuantile(1 - p);
+        if (z <= 0) return showError('or', 'p-value too large to derive a meaningful SE.');
+        se = Math.abs(logOR) / z;
+      } else {
+        orVal = parseFloat(document.getElementById('or-or').value);
+        se = parseFloat(document.getElementById('or-se').value);
+        if (isNaN(orVal) || orVal <= 0) return showError('or', 'Please enter a valid odds ratio (> 0).');
+        if (isNaN(se) || se <= 0) return showError('or', 'Please enter a valid SE of log(OR) (> 0), or derive it from CI values.');
+      }
+
       const threshold = parseFloat(document.getElementById('or-threshold').value) || 1.0;
-      const usePrior = document.getElementById('or-use-prior').checked;
-
-      if (isNaN(orVal) || orVal <= 0) return showError('or', 'Please enter a valid odds ratio (> 0).');
-      if (isNaN(se) || se <= 0) return showError('or', 'Please enter a valid SE of log(OR) (> 0), or derive it from CI values.');
       if (threshold <= 0) return showError('or', 'Threshold OR must be > 0.');
-
+      const usePrior = document.getElementById('or-use-prior').checked;
       let priorMean = null, priorSd = null;
       if (usePrior) {
         priorMean = parseFloat(document.getElementById('or-prior-mean').value);
@@ -920,6 +1158,7 @@
       const logOR = Math.log(orVal);
       const logThreshold = Math.log(threshold);
       const { prob, postMean, postSd } = bayesianPosteriorProb(logOR, se, logThreshold, priorMean, priorSd);
+      const pEquiv = (1 - prob).toFixed(4);
       const details = [
         { label: 'Observed OR', value: orVal.toFixed(4) },
         { label: 'log(OR)', value: logOR.toFixed(4) },
@@ -929,20 +1168,33 @@
         { label: 'Posterior SD', value: postSd.toFixed(4) },
         { label: 'Posterior median OR', value: Math.exp(postMean).toFixed(4) },
         { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
+        { label: 'Equiv. 1-tail p (threshold)', value: pEquiv },
       ];
       showResult('or', prob, details);
     }
 
     else if (type === 'rr') {
-      const rrVal = parseFloat(document.getElementById('rr-rr').value);
-      const se = parseFloat(document.getElementById('rr-se').value);
+      let rrVal, se;
+      if (method === 'pval') {
+        rrVal = parseFloat(document.getElementById('rr-pval-rr').value);
+        const p = parseFloat(document.getElementById('rr-pval').value);
+        if (isNaN(rrVal) || rrVal <= 0) return showError('rr', 'Please enter a valid risk ratio (> 0).');
+        if (isNaN(p) || p <= 0 || p >= 1) return showError('rr', 'Please enter a valid one-tailed p-value (between 0 and 1).');
+        const logRR = Math.log(rrVal);
+        if (logRR === 0) return showError('rr', 'RR cannot be exactly 1 when deriving SE from a p-value.');
+        const z = normalQuantile(1 - p);
+        if (z <= 0) return showError('rr', 'p-value too large to derive a meaningful SE.');
+        se = Math.abs(logRR) / z;
+      } else {
+        rrVal = parseFloat(document.getElementById('rr-rr').value);
+        se = parseFloat(document.getElementById('rr-se').value);
+        if (isNaN(rrVal) || rrVal <= 0) return showError('rr', 'Please enter a valid risk ratio (> 0).');
+        if (isNaN(se) || se <= 0) return showError('rr', 'Please enter a valid SE of log(RR) (> 0), or derive it from CI values.');
+      }
+
       const threshold = parseFloat(document.getElementById('rr-threshold').value) || 1.0;
-      const usePrior = document.getElementById('rr-use-prior').checked;
-
-      if (isNaN(rrVal) || rrVal <= 0) return showError('rr', 'Please enter a valid risk ratio (> 0).');
-      if (isNaN(se) || se <= 0) return showError('rr', 'Please enter a valid SE of log(RR) (> 0), or derive it from CI values.');
       if (threshold <= 0) return showError('rr', 'Threshold RR must be > 0.');
-
+      const usePrior = document.getElementById('rr-use-prior').checked;
       let priorMean = null, priorSd = null;
       if (usePrior) {
         priorMean = parseFloat(document.getElementById('rr-prior-mean').value);
@@ -954,6 +1206,7 @@
       const logRR = Math.log(rrVal);
       const logThreshold = Math.log(threshold);
       const { prob, postMean, postSd } = bayesianPosteriorProb(logRR, se, logThreshold, priorMean, priorSd);
+      const pEquiv = (1 - prob).toFixed(4);
       const details = [
         { label: 'Observed RR', value: rrVal.toFixed(4) },
         { label: 'log(RR)', value: logRR.toFixed(4) },
@@ -963,6 +1216,7 @@
         { label: 'Posterior SD', value: postSd.toFixed(4) },
         { label: 'Posterior median RR', value: Math.exp(postMean).toFixed(4) },
         { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
+        { label: 'Equiv. 1-tail p (threshold)', value: pEquiv },
       ];
       showResult('rr', prob, details);
     }
