@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bayesian Posterior Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2eb;
+    --surface: #fffef9;
+    --surface2: #efeae0;
+    --ink: #1a1714;
+    --ink-2: #4a4540;
+    --ink-3: #8a8077;
+    --accent: #c84b2f;
+    --accent-light: #f5e8e4;
+    --green: #2a6e4e;
+    --green-light: #e2f0ea;
+    --border: #d8d0c4;
+    --shadow: 0 2px 16px rgba(26,23,20,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  /* Subtle grid texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(26,23,20,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,23,20,0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    margin-bottom: 2.5rem;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 1.5rem;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    line-height: 1.1;
+    color: var(--ink);
+  }
+
+  h1 em {
+    color: var(--accent);
+    font-style: italic;
+  }
+
+  .subtitle {
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+    max-width: 580px;
+  }
+
+  /* Tab switcher */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    transition: all 0.2s;
+    border-right: 1.5px solid var(--border);
+  }
+
+  .tab-btn:last-child { border-right: none; }
+
+  .tab-btn.active {
+    background: var(--ink);
+    color: var(--bg);
+  }
+
+  .tab-btn:hover:not(.active) {
+    background: var(--border);
+    color: var(--ink);
+  }
+
+  /* Panels */
+  .panel {
+    display: none;
+  }
+  .panel.active { display: block; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+  }
+
+  /* Form fields */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 520px) {
+    .field-group { grid-template-columns: 1fr; }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .field.full { grid-column: 1 / -1; }
+
+  label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  label .hint {
+    font-size: 0.65rem;
+    color: var(--ink-3);
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: 'DM Sans', sans-serif;
+    display: block;
+    margin-top: 0.1rem;
+  }
+
+  input[type="number"], select {
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--ink);
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
+
+  input[type="number"]:focus, select:focus {
+    outline: none;
+    border-color: var(--ink);
+  }
+
+  /* Prior section */
+  .prior-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border);
+  }
+
+  .prior-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    user-select: none;
+  }
+
+  input[type="checkbox"] {
+    accent-color: var(--ink);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+
+  /* Calculate button */
+  .calc-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--ink);
+    color: var(--bg);
+    border: none;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 1.25rem;
+    transition: all 0.15s;
+  }
+
+  .calc-btn:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(200,75,47,0.25);
+  }
+
+  .calc-btn:active { transform: translateY(0); }
+
+  /* Results */
+  .result-box {
+    display: none;
+    margin-top: 1.5rem;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .result-box.show { display: block; }
+
+  .result-header {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 0.6rem 1.25rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .result-body {
+    background: var(--surface);
+    padding: 1.5rem 1.25rem;
+  }
+
+  .result-main {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .result-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 3rem;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .result-unit {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--ink-3);
+  }
+
+  /* Probability bar */
+  .prob-bar-wrap {
+    margin-bottom: 1rem;
+  }
+
+  .prob-bar-bg {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .prob-bar-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 0%;
+  }
+
+  .prob-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-3);
+    margin-top: 0.3rem;
+  }
+
+  /* Interpretation chip */
+  .interp-chip {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+
+  .interp-chip.low { background: var(--surface2); color: var(--ink-3); }
+  .interp-chip.moderate { background: #fef3e2; color: #8a5a00; }
+  .interp-chip.high { background: var(--green-light); color: var(--green); }
+  .interp-chip.very-high { background: var(--green-light); color: var(--green); font-weight: 500; }
+
+  /* Result detail rows */
+  .result-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .detail-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .detail-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  .detail-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    background: #fde8e4;
+    border: 1px solid #f5c2b8;
+    color: var(--accent);
+    border-radius: 4px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.82rem;
+    margin-top: 0.75rem;
+  }
+  .error-msg.show { display: block; }
+
+  /* Info / explainer */
+  .info-box {
+    background: var(--surface2);
+    border-left: 3px solid var(--ink-3);
+    padding: 0.85rem 1rem;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.82rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+    margin-top: 1.5rem;
+  }
+
+  .info-box strong { color: var(--ink); }
+
+  /* About / methodology section */
+  .methodology {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .methodology h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .methodology p {
+    font-size: 0.87rem;
+    line-height: 1.7;
+    color: var(--ink-2);
+    margin-bottom: 0.85rem;
+  }
+
+  .formula-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.85rem 1.1rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--ink);
+    margin: 0.85rem 0;
+    line-height: 1.8;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-label">Statistical Analysis Tool</div>
+    <h1>Bayesian <em>Posterior</em><br>Probability Calculator</h1>
+    <p class="subtitle">Converts frequentist study results into Bayesian posterior probabilities that an effect exceeds a specified threshold, assuming a non-informative prior.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('means')">Mean Difference</button>
+    <button class="tab-btn" onclick="switchTab('or')">Odds Ratio</button>
+    <button class="tab-btn" onclick="switchTab('rr')">Risk Ratio</button>
+  </div>
+
+  <!-- MEAN DIFFERENCE PANEL -->
+  <div class="panel active" id="panel-means">
+    <div class="card">
+      <div class="card-title">Study Results — Mean Difference</div>
+
+      <div class="field-group">
+        <div class="field">
+          <label>Observed Mean Difference
+            <span class="hint">e.g. 2.5</span>
+          </label>
+          <input type="number" id="md-mean" placeholder="0.0" step="any">
+        </div>
+        <div class="field">
+          <label>Standard Error of Mean Diff
+            <span class="hint">or enter CI below</span>
+          </label>
+          <input type="number" id="md-sem" placeholder="0.0" step="any" min="0">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field">
+          <label>Lower 95% CI
+            <span class="hint">optional — derives SE</span>
+          </label>
+          <input type="number" id="md-ci-lo" placeholder="optional" step="any" oninput="deriveFromCI('md')">
+        </div>
+        <div class="field">
+          <label>Upper 95% CI
+            <span class="hint">optional — derives SE</span>
+          </label>
+          <input type="number" id="md-ci-hi" placeholder="optional" step="any" oninput="deriveFromCI('md')">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field full">
+          <label>Threshold (minimum meaningful effect)
+            <span class="hint">posterior prob that effect ≥ this value will be computed</span>
+          </label>
+          <input type="number" id="md-threshold" placeholder="0" step="any" value="0">
+        </div>
+      </div>
+
+      <div class="prior-row">
+        <label class="prior-toggle">
+          <input type="checkbox" id="md-use-prior" onchange="togglePrior('md')">
+          Use informative prior
+        </label>
+      </div>
+      <div id="md-prior-fields" style="display:none; margin-top:1rem;">
+        <div class="field-group">
+          <div class="field">
+            <label>Prior Mean
+              <span class="hint">your best prior estimate</span>
+            </label>
+            <input type="number" id="md-prior-mean" placeholder="0" step="any">
+          </div>
+          <div class="field">
+            <label>Prior SD
+              <span class="hint">uncertainty around prior mean</span>
+            </label>
+            <input type="number" id="md-prior-sd" placeholder="1" step="any" min="0.0001">
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="calculate('md')">↳ Calculate Posterior Probability</button>
+      <div class="error-msg" id="md-error"></div>
+    </div>
+    <div class="result-box" id="md-result">
+      <div class="result-header">Posterior Probability</div>
+      <div class="result-body">
+        <div class="result-main">
+          <span class="result-value" id="md-prob-display">—</span>
+          <span class="result-unit">%</span>
+        </div>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar-bg"><div class="prob-bar-fill" id="md-bar"></div></div>
+          <div class="prob-bar-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+        <div class="interp-chip" id="md-interp"></div>
+        <div class="result-details" id="md-details"></div>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>Note on equivalence:</strong> With a non-informative prior and normally distributed data, the posterior probability that the effect exceeds zero equals 1 − (one-tailed p-value). For other thresholds the calculation generalises straightforwardly using the normal posterior.
+    </div>
+  </div>
+
+  <!-- ODDS RATIO PANEL -->
+  <div class="panel" id="panel-or">
+    <div class="card">
+      <div class="card-title">Study Results — Odds Ratio</div>
+
+      <div class="field-group">
+        <div class="field">
+          <label>Observed Odds Ratio
+            <span class="hint">on natural scale, e.g. 1.54</span>
+          </label>
+          <input type="number" id="or-or" placeholder="1.0" step="any" min="0.0001">
+        </div>
+        <div class="field">
+          <label>SE of log(OR)
+            <span class="hint">or enter CI below</span>
+          </label>
+          <input type="number" id="or-se" placeholder="0.0" step="any" min="0">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field">
+          <label>Lower 95% CI (OR scale)
+            <span class="hint">optional — derives SE</span>
+          </label>
+          <input type="number" id="or-ci-lo" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('or')">
+        </div>
+        <div class="field">
+          <label>Upper 95% CI (OR scale)
+            <span class="hint">optional — derives SE</span>
+          </label>
+          <input type="number" id="or-ci-hi" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('or')">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field full">
+          <label>Threshold OR (minimum meaningful effect)
+            <span class="hint">e.g. 1.0 = any benefit; 1.2 = at least 20% increase in odds</span>
+          </label>
+          <input type="number" id="or-threshold" placeholder="1.0" step="any" min="0.0001" value="1.0">
+        </div>
+      </div>
+
+      <div class="prior-row">
+        <label class="prior-toggle">
+          <input type="checkbox" id="or-use-prior" onchange="togglePrior('or')">
+          Use informative prior (on log-OR scale)
+        </label>
+      </div>
+      <div id="or-prior-fields" style="display:none; margin-top:1rem;">
+        <div class="field-group">
+          <div class="field">
+            <label>Prior Mean log(OR)
+              <span class="hint">e.g. 0 = no prior expectation of effect</span>
+            </label>
+            <input type="number" id="or-prior-mean" placeholder="0" step="any">
+          </div>
+          <div class="field">
+            <label>Prior SD (log-OR scale)
+              <span class="hint">uncertainty in prior</span>
+            </label>
+            <input type="number" id="or-prior-sd" placeholder="1" step="any" min="0.0001">
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="calculate('or')">↳ Calculate Posterior Probability</button>
+      <div class="error-msg" id="or-error"></div>
+    </div>
+    <div class="result-box" id="or-result">
+      <div class="result-header">Posterior Probability</div>
+      <div class="result-body">
+        <div class="result-main">
+          <span class="result-value" id="or-prob-display">—</span>
+          <span class="result-unit">%</span>
+        </div>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar-bg"><div class="prob-bar-fill" id="or-bar"></div></div>
+          <div class="prob-bar-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+        <div class="interp-chip" id="or-interp"></div>
+        <div class="result-details" id="or-details"></div>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>Analysis on log scale:</strong> The calculation is performed on the log(OR) scale where normality holds. The threshold OR is log-transformed before comparison. The SE of log(OR) is derived from the CI using: SE = [ln(upper CI) − ln(lower CI)] / 3.92.
+    </div>
+  </div>
+
+  <!-- RISK RATIO PANEL -->
+  <div class="panel" id="panel-rr">
+    <div class="card">
+      <div class="card-title">Study Results — Risk Ratio</div>
+
+      <div class="field-group">
+        <div class="field">
+          <label>Observed Risk Ratio
+            <span class="hint">on natural scale, e.g. 0.75</span>
+          </label>
+          <input type="number" id="rr-rr" placeholder="1.0" step="any" min="0.0001">
+        </div>
+        <div class="field">
+          <label>SE of log(RR)
+            <span class="hint">or enter CI below</span>
+          </label>
+          <input type="number" id="rr-se" placeholder="0.0" step="any" min="0">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field">
+          <label>Lower 95% CI (RR scale)
+            <span class="hint">optional — derives SE</span>
+          </label>
+          <input type="number" id="rr-ci-lo" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('rr')">
+        </div>
+        <div class="field">
+          <label>Upper 95% CI (RR scale)
+            <span class="hint">optional — derives SE</span>
+          </label>
+          <input type="number" id="rr-ci-hi" placeholder="optional" step="any" min="0.0001" oninput="deriveFromCI('rr')">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field full">
+          <label>Threshold RR (minimum meaningful effect)
+            <span class="hint">e.g. 1.0 = any increase; 0.8 = at least 20% risk reduction</span>
+          </label>
+          <input type="number" id="rr-threshold" placeholder="1.0" step="any" min="0.0001" value="1.0">
+        </div>
+      </div>
+
+      <div class="prior-row">
+        <label class="prior-toggle">
+          <input type="checkbox" id="rr-use-prior" onchange="togglePrior('rr')">
+          Use informative prior (on log-RR scale)
+        </label>
+      </div>
+      <div id="rr-prior-fields" style="display:none; margin-top:1rem;">
+        <div class="field-group">
+          <div class="field">
+            <label>Prior Mean log(RR)
+              <span class="hint">e.g. 0 = no prior expectation</span>
+            </label>
+            <input type="number" id="rr-prior-mean" placeholder="0" step="any">
+          </div>
+          <div class="field">
+            <label>Prior SD (log-RR scale)
+              <span class="hint">uncertainty in prior</span>
+            </label>
+            <input type="number" id="rr-prior-sd" placeholder="1" step="any" min="0.0001">
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="calculate('rr')">↳ Calculate Posterior Probability</button>
+      <div class="error-msg" id="rr-error"></div>
+    </div>
+    <div class="result-box" id="rr-result">
+      <div class="result-header">Posterior Probability</div>
+      <div class="result-body">
+        <div class="result-main">
+          <span class="result-value" id="rr-prob-display">—</span>
+          <span class="result-unit">%</span>
+        </div>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar-bg"><div class="prob-bar-fill" id="rr-bar"></div></div>
+          <div class="prob-bar-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+        </div>
+        <div class="interp-chip" id="rr-interp"></div>
+        <div class="result-details" id="rr-details"></div>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>Analysis on log scale:</strong> As with odds ratios, the analysis proceeds on the log(RR) scale. SE is derived from the CI using: SE = [ln(upper CI) − ln(lower CI)] / 3.92.
+    </div>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <div class="methodology">
+    <h2>Methodology</h2>
+    <p>This calculator implements Bayesian inference under a normal likelihood model. With a <strong>non-informative (flat) prior</strong>, the posterior distribution of the parameter equals the likelihood, and the posterior probability that the effect exceeds any threshold τ is:</p>
+    <div class="formula-block">
+      P(θ ≥ τ | data) = 1 − Φ( (τ − θ̂) / SE )
+    </div>
+    <p>where Φ is the standard normal CDF, θ̂ is the observed estimate, and SE is its standard error. For ratio measures (OR, RR), the analysis is conducted on the log scale.</p>
+    <p>With an <strong>informative prior</strong> N(μ₀, σ₀²), the posterior is also normal with:</p>
+    <div class="formula-block">
+      Posterior mean  = (μ₀/σ₀² + θ̂/SE²) / (1/σ₀² + 1/SE²)<br>
+      Posterior SD    = 1 / √(1/σ₀² + 1/SE²)
+    </div>
+    <p>The <strong>key equivalence</strong> with frequentist statistics: when the threshold is zero (or 1 for ratios) and a flat prior is used, the posterior probability of a positive effect equals 1 − (one-tailed p-value). The Bayesian framing generalises this to arbitrary thresholds and admits prior knowledge.</p>
+  </div>
+
+  <footer>
+    <span>Bayesian Posterior Calculator</span>
+    <span>Assumes approximate normality · Non-informative prior by default</span>
+  </footer>
+
+</div>
+
+<script>
+  // ── Normal CDF (Hart approximation) ──────────────────────────────────
+  function normalCDF(z) {
+    const t = 1 / (1 + 0.2316419 * Math.abs(z));
+    const d = 0.3989423 * Math.exp(-z * z / 2);
+    const poly = t * (0.3193815 + t * (-0.3565638 + t * (1.7814779 + t * (-1.8212560 + t * 1.3302744))));
+    const cdf = 1 - d * poly;
+    return z > 0 ? cdf : 1 - cdf;
+  }
+
+  // ── Tab switching ─────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+      b.classList.toggle('active', ['means','or','rr'][i] === tab);
+    });
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+  }
+
+  // ── Toggle prior fields ───────────────────────────────────────────────
+  function togglePrior(type) {
+    const cb = document.getElementById(type + '-use-prior');
+    document.getElementById(type + '-prior-fields').style.display = cb.checked ? 'block' : 'none';
+  }
+
+  // ── Derive SE from CI ─────────────────────────────────────────────────
+  function deriveFromCI(type) {
+    if (type === 'md') {
+      const lo = parseFloat(document.getElementById('md-ci-lo').value);
+      const hi = parseFloat(document.getElementById('md-ci-hi').value);
+      if (!isNaN(lo) && !isNaN(hi) && hi > lo) {
+        document.getElementById('md-sem').value = ((hi - lo) / 3.92).toFixed(4);
+      }
+    } else if (type === 'or') {
+      const lo = parseFloat(document.getElementById('or-ci-lo').value);
+      const hi = parseFloat(document.getElementById('or-ci-hi').value);
+      if (!isNaN(lo) && !isNaN(hi) && lo > 0 && hi > lo) {
+        document.getElementById('or-se').value = ((Math.log(hi) - Math.log(lo)) / 3.92).toFixed(4);
+      }
+    } else if (type === 'rr') {
+      const lo = parseFloat(document.getElementById('rr-ci-lo').value);
+      const hi = parseFloat(document.getElementById('rr-ci-hi').value);
+      if (!isNaN(lo) && !isNaN(hi) && lo > 0 && hi > lo) {
+        document.getElementById('rr-se').value = ((Math.log(hi) - Math.log(lo)) / 3.92).toFixed(4);
+      }
+    }
+  }
+
+  // ── Interpretation label ──────────────────────────────────────────────
+  function interpretProb(p) {
+    if (p >= 95) return { label: 'Very strong evidence', cls: 'very-high' };
+    if (p >= 80) return { label: 'Strong evidence', cls: 'high' };
+    if (p >= 60) return { label: 'Moderate evidence', cls: 'moderate' };
+    if (p >= 40) return { label: 'Weak evidence', cls: 'low' };
+    return { label: 'Little or no evidence', cls: 'low' };
+  }
+
+  // ── Show results ──────────────────────────────────────────────────────
+  function showResult(type, prob, details) {
+    const pct = (prob * 100).toFixed(1);
+    document.getElementById(type + '-prob-display').textContent = pct;
+    document.getElementById(type + '-bar').style.width = pct + '%';
+    const interp = interpretProb(parseFloat(pct));
+    const chip = document.getElementById(type + '-interp');
+    chip.textContent = interp.label;
+    chip.className = 'interp-chip ' + interp.cls;
+    const detailEl = document.getElementById(type + '-details');
+    detailEl.innerHTML = details.map(d =>
+      `<div class="detail-row"><span class="detail-label">${d.label}</span><span class="detail-value">${d.value}</span></div>`
+    ).join('');
+    document.getElementById(type + '-result').classList.add('show');
+  }
+
+  function showError(type, msg) {
+    const el = document.getElementById(type + '-error');
+    el.textContent = msg;
+    el.classList.add('show');
+    document.getElementById(type + '-result').classList.remove('show');
+  }
+
+  function clearError(type) {
+    document.getElementById(type + '-error').classList.remove('show');
+  }
+
+  // ── Core Bayesian calculation ─────────────────────────────────────────
+  // Returns posterior probability that parameter >= threshold
+  // All inputs on the working (possibly log) scale
+  function bayesianPosteriorProb(estimate, se, threshold, priorMean, priorSd) {
+    let postMean, postSd;
+    if (priorMean !== null && priorSd !== null) {
+      const priorVar = priorSd * priorSd;
+      const likeVar = se * se;
+      const postVar = 1 / (1/priorVar + 1/likeVar);
+      postSd = Math.sqrt(postVar);
+      postMean = postVar * (priorMean/priorVar + estimate/likeVar);
+    } else {
+      postMean = estimate;
+      postSd = se;
+    }
+    const z = (threshold - postMean) / postSd;
+    return { prob: 1 - normalCDF(z), postMean, postSd };
+  }
+
+  // ── Main calculate dispatcher ─────────────────────────────────────────
+  function calculate(type) {
+    clearError(type);
+
+    if (type === 'md') {
+      const mean = parseFloat(document.getElementById('md-mean').value);
+      const sem = parseFloat(document.getElementById('md-sem').value);
+      const threshold = parseFloat(document.getElementById('md-threshold').value) || 0;
+      const usePrior = document.getElementById('md-use-prior').checked;
+
+      if (isNaN(mean)) return showError('md', 'Please enter the observed mean difference.');
+      if (isNaN(sem) || sem <= 0) return showError('md', 'Please enter a valid standard error (> 0), or derive it from CI values.');
+
+      let priorMean = null, priorSd = null;
+      if (usePrior) {
+        priorMean = parseFloat(document.getElementById('md-prior-mean').value);
+        priorSd = parseFloat(document.getElementById('md-prior-sd').value);
+        if (isNaN(priorMean) || isNaN(priorSd) || priorSd <= 0)
+          return showError('md', 'Please enter valid prior mean and SD (SD > 0).');
+      }
+
+      const { prob, postMean, postSd } = bayesianPosteriorProb(mean, sem, threshold, priorMean, priorSd);
+      const details = [
+        { label: 'Observed mean diff', value: mean.toFixed(4) },
+        { label: 'Standard error', value: sem.toFixed(4) },
+        { label: 'Threshold', value: threshold.toFixed(4) },
+        { label: 'Posterior mean', value: postMean.toFixed(4) },
+        { label: 'Posterior SD', value: postSd.toFixed(4) },
+        { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
+      ];
+      showResult('md', prob, details);
+    }
+
+    else if (type === 'or') {
+      const orVal = parseFloat(document.getElementById('or-or').value);
+      const se = parseFloat(document.getElementById('or-se').value);
+      const threshold = parseFloat(document.getElementById('or-threshold').value) || 1.0;
+      const usePrior = document.getElementById('or-use-prior').checked;
+
+      if (isNaN(orVal) || orVal <= 0) return showError('or', 'Please enter a valid odds ratio (> 0).');
+      if (isNaN(se) || se <= 0) return showError('or', 'Please enter a valid SE of log(OR) (> 0), or derive it from CI values.');
+      if (threshold <= 0) return showError('or', 'Threshold OR must be > 0.');
+
+      let priorMean = null, priorSd = null;
+      if (usePrior) {
+        priorMean = parseFloat(document.getElementById('or-prior-mean').value);
+        priorSd = parseFloat(document.getElementById('or-prior-sd').value);
+        if (isNaN(priorMean) || isNaN(priorSd) || priorSd <= 0)
+          return showError('or', 'Please enter valid prior mean and SD (SD > 0).');
+      }
+
+      const logOR = Math.log(orVal);
+      const logThreshold = Math.log(threshold);
+      const { prob, postMean, postSd } = bayesianPosteriorProb(logOR, se, logThreshold, priorMean, priorSd);
+      const details = [
+        { label: 'Observed OR', value: orVal.toFixed(4) },
+        { label: 'log(OR)', value: logOR.toFixed(4) },
+        { label: 'SE of log(OR)', value: se.toFixed(4) },
+        { label: 'Threshold OR', value: threshold.toFixed(4) },
+        { label: 'Posterior mean log(OR)', value: postMean.toFixed(4) },
+        { label: 'Posterior SD', value: postSd.toFixed(4) },
+        { label: 'Posterior median OR', value: Math.exp(postMean).toFixed(4) },
+        { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
+      ];
+      showResult('or', prob, details);
+    }
+
+    else if (type === 'rr') {
+      const rrVal = parseFloat(document.getElementById('rr-rr').value);
+      const se = parseFloat(document.getElementById('rr-se').value);
+      const threshold = parseFloat(document.getElementById('rr-threshold').value) || 1.0;
+      const usePrior = document.getElementById('rr-use-prior').checked;
+
+      if (isNaN(rrVal) || rrVal <= 0) return showError('rr', 'Please enter a valid risk ratio (> 0).');
+      if (isNaN(se) || se <= 0) return showError('rr', 'Please enter a valid SE of log(RR) (> 0), or derive it from CI values.');
+      if (threshold <= 0) return showError('rr', 'Threshold RR must be > 0.');
+
+      let priorMean = null, priorSd = null;
+      if (usePrior) {
+        priorMean = parseFloat(document.getElementById('rr-prior-mean').value);
+        priorSd = parseFloat(document.getElementById('rr-prior-sd').value);
+        if (isNaN(priorMean) || isNaN(priorSd) || priorSd <= 0)
+          return showError('rr', 'Please enter valid prior mean and SD (SD > 0).');
+      }
+
+      const logRR = Math.log(rrVal);
+      const logThreshold = Math.log(threshold);
+      const { prob, postMean, postSd } = bayesianPosteriorProb(logRR, se, logThreshold, priorMean, priorSd);
+      const details = [
+        { label: 'Observed RR', value: rrVal.toFixed(4) },
+        { label: 'log(RR)', value: logRR.toFixed(4) },
+        { label: 'SE of log(RR)', value: se.toFixed(4) },
+        { label: 'Threshold RR', value: threshold.toFixed(4) },
+        { label: 'Posterior mean log(RR)', value: postMean.toFixed(4) },
+        { label: 'Posterior SD', value: postSd.toFixed(4) },
+        { label: 'Posterior median RR', value: Math.exp(postMean).toFixed(4) },
+        { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
+      ];
+      showResult('rr', prob, details);
+    }
+  }
+</script>
+</body>
+</html>
