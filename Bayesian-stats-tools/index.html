@@ -124,6 +124,21 @@
     color: var(--ink);
   }
 
+  .slider-mode-row {
+    margin-bottom: 1.25rem;
+    padding: 0.65rem 0.85rem;
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    background: var(--surface);
+  }
+
+  .slider-mode-row .prior-toggle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
   /* Panels */
   .panel {
     display: none;
@@ -300,6 +315,69 @@
 
   .calc-btn:active { transform: translateY(0); }
 
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    margin-top: 0.65rem;
+  }
+
+  @media (max-width: 520px) {
+    .action-row { grid-template-columns: 1fr; }
+  }
+
+  .aux-btn {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.69rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .aux-btn:hover {
+    border-color: var(--ink);
+    background: #f7f2e8;
+  }
+
+  .linked-slider {
+    width: 100%;
+    margin-top: 0.4rem;
+    display: none;
+    accent-color: var(--accent);
+  }
+
+  .slider-mode .linked-slider {
+    display: block;
+  }
+
+  .slider-mode .panel.active {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .slider-mode .panel.active .result-box {
+    order: 1;
+    margin-top: 0;
+  }
+
+  .slider-mode .panel.active .card {
+    order: 2;
+    margin-bottom: 0;
+  }
+
+  .slider-mode .panel.active .info-box {
+    order: 3;
+    margin-top: 0;
+  }
+
   /* Results */
   .result-box {
     display: none;
@@ -422,6 +500,36 @@
     color: var(--ink);
   }
 
+  /* Distribution plot */
+  .dist-figure {
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .dist-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 0.45rem;
+  }
+
+  .dist-chart {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #fff;
+    padding: 0.45rem;
+  }
+
+  .dist-caption {
+    margin-top: 0.4rem;
+    font-size: 0.73rem;
+    color: var(--ink-3);
+    line-height: 1.5;
+  }
+
   /* Error */
   .error-msg {
     display: none;
@@ -509,6 +617,13 @@
     <button class="tab-btn active" onclick="switchTab('means')">Mean Difference</button>
     <button class="tab-btn" onclick="switchTab('or')">Odds Ratio</button>
     <button class="tab-btn" onclick="switchTab('rr')">Risk Ratio</button>
+  </div>
+
+  <div class="slider-mode-row">
+    <label class="prior-toggle">
+      <input type="checkbox" id="slider-mode-toggle" onchange="toggleSliderMode(this.checked)">
+      Slider mode (drag values, auto-update plot)
+    </label>
   </div>
 
   <!-- MEAN DIFFERENCE PANEL -->
@@ -609,7 +724,18 @@
         </div>
       </div>
 
+      <div class="prior-row" id="md-flat-prior-row" style="margin-top:0.75rem; padding-top:0.75rem;">
+        <label class="prior-toggle">
+          <input type="checkbox" id="md-show-flat-prior">
+          Show non-informative prior in distribution plot
+        </label>
+      </div>
+
       <button class="calc-btn" onclick="calculate('md')">↳ Calculate Posterior Probability</button>
+      <div class="action-row">
+        <button class="aux-btn" type="button" onclick="randomizePanelInputs('md')">Randomize Inputs</button>
+        <button class="aux-btn" type="button" onclick="resetPanelInputs('md')">Reset Defaults</button>
+      </div>
       <div class="error-msg" id="md-error"></div>
     </div>
     <div class="result-box" id="md-result">
@@ -625,6 +751,11 @@
         </div>
         <div class="interp-chip" id="md-interp"></div>
         <div class="result-details" id="md-details"></div>
+        <div class="dist-figure">
+          <div class="dist-title" id="md-dist-title">Posterior distribution</div>
+          <div class="dist-chart" id="md-dist-chart"></div>
+          <div class="dist-caption">Dashed line marks the threshold &tau;.</div>
+        </div>
       </div>
     </div>
     <div class="info-box">
@@ -730,7 +861,18 @@
         </div>
       </div>
 
+      <div class="prior-row" id="or-flat-prior-row" style="margin-top:0.75rem; padding-top:0.75rem;">
+        <label class="prior-toggle">
+          <input type="checkbox" id="or-show-flat-prior">
+          Show non-informative prior in distribution plot
+        </label>
+      </div>
+
       <button class="calc-btn" onclick="calculate('or')">↳ Calculate Posterior Probability</button>
+      <div class="action-row">
+        <button class="aux-btn" type="button" onclick="randomizePanelInputs('or')">Randomize Inputs</button>
+        <button class="aux-btn" type="button" onclick="resetPanelInputs('or')">Reset Defaults</button>
+      </div>
       <div class="error-msg" id="or-error"></div>
     </div>
     <div class="result-box" id="or-result">
@@ -746,6 +888,11 @@
         </div>
         <div class="interp-chip" id="or-interp"></div>
         <div class="result-details" id="or-details"></div>
+        <div class="dist-figure">
+          <div class="dist-title" id="or-dist-title">Posterior distribution</div>
+          <div class="dist-chart" id="or-dist-chart"></div>
+          <div class="dist-caption">Dashed line marks the threshold on the analysis scale.</div>
+        </div>
       </div>
     </div>
     <div class="info-box">
@@ -851,7 +998,18 @@
         </div>
       </div>
 
+      <div class="prior-row" id="rr-flat-prior-row" style="margin-top:0.75rem; padding-top:0.75rem;">
+        <label class="prior-toggle">
+          <input type="checkbox" id="rr-show-flat-prior">
+          Show non-informative prior in distribution plot
+        </label>
+      </div>
+
       <button class="calc-btn" onclick="calculate('rr')">↳ Calculate Posterior Probability</button>
+      <div class="action-row">
+        <button class="aux-btn" type="button" onclick="randomizePanelInputs('rr')">Randomize Inputs</button>
+        <button class="aux-btn" type="button" onclick="resetPanelInputs('rr')">Reset Defaults</button>
+      </div>
       <div class="error-msg" id="rr-error"></div>
     </div>
     <div class="result-box" id="rr-result">
@@ -867,6 +1025,11 @@
         </div>
         <div class="interp-chip" id="rr-interp"></div>
         <div class="result-details" id="rr-details"></div>
+        <div class="dist-figure">
+          <div class="dist-title" id="rr-dist-title">Posterior distribution</div>
+          <div class="dist-chart" id="rr-dist-chart"></div>
+          <div class="dist-caption">Dashed line marks the threshold on the analysis scale.</div>
+        </div>
       </div>
     </div>
     <div class="info-box">
@@ -898,6 +1061,248 @@
 </div>
 
 <script>
+  const panelByType = { md: 'means', or: 'or', rr: 'rr' };
+  const typeByPanel = { 'panel-means': 'md', 'panel-or': 'or', 'panel-rr': 'rr' };
+  const typeByTab = { means: 'md', or: 'or', rr: 'rr' };
+  const defaultNumericValues = {};
+  const calcTimers = {};
+  let sliderModeEnabled = false;
+  let currentTab = 'means';
+  let syncingSlider = false;
+
+  function captureDefaultNumericValues() {
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      if (input.id) defaultNumericValues[input.id] = input.value;
+    });
+  }
+
+  function rand(min, max) {
+    return min + Math.random() * (max - min);
+  }
+
+  function roundTo(value, decimals) {
+    const factor = Math.pow(10, decimals);
+    return Math.round(value * factor) / factor;
+  }
+
+  function setValue(id, value, decimals = 3) {
+    const el = document.getElementById(id);
+    if (!el || el.readOnly) return;
+    el.value = roundTo(value, decimals);
+  }
+
+  function hideResult(type) {
+    const result = document.getElementById(type + '-result');
+    if (result) result.classList.remove('show');
+  }
+
+  function parseNum(value) {
+    const n = parseFloat(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function getCurrentType() {
+    return typeByTab[currentTab] || 'md';
+  }
+
+  function getTypeFromElement(el) {
+    const panel = el.closest('.panel');
+    if (!panel) return getCurrentType();
+    return typeByPanel[panel.id] || getCurrentType();
+  }
+
+  function inferSliderBounds(input) {
+    const minAttr = parseNum(input.min);
+    const maxAttr = parseNum(input.max);
+    const val = parseNum(input.value);
+    const id = input.id || '';
+
+    const positiveOnly =
+      (Number.isFinite(minAttr) && minAttr >= 0) ||
+      ((id.startsWith('or-') || id.startsWith('rr-')) && !id.includes('prior-mean'));
+
+    const base = Math.max(Math.abs(val ?? 1), 1);
+    let min = Number.isFinite(minAttr) ? minAttr : (positiveOnly ? Math.max(0.0001, (val ?? 1) * 0.2) : -2 * base);
+    let max = Number.isFinite(maxAttr) ? maxAttr : (positiveOnly ? Math.max((val ?? min * 2) * 2, min * 4) : 2 * base);
+
+    if (!(max > min)) max = min + (positiveOnly ? Math.max(min, 1) : 1);
+
+    let step = 0;
+    if (input.step && input.step !== 'any') step = parseFloat(input.step);
+    if (!Number.isFinite(step) || step <= 0) {
+      step = roundTo((max - min) / 400, 6);
+      if (step <= 0) step = 0.01;
+    }
+
+    const value = Number.isFinite(val) ? Math.min(max, Math.max(min, val)) : min;
+    return { min, max, step, value };
+  }
+
+  function setSliderFromInput(slider, input) {
+    const n = parseNum(input.value);
+    if (!Number.isFinite(n)) return;
+
+    let min = parseFloat(slider.min);
+    let max = parseFloat(slider.max);
+    if (n < min) {
+      slider.min = n;
+      min = n;
+    }
+    if (n > max) {
+      slider.max = n;
+      max = n;
+    }
+    slider.value = Math.min(max, Math.max(min, n));
+  }
+
+  function buildLinkedSliders() {
+    document.querySelectorAll('.panel input[type="number"]').forEach(input => {
+      if (!input.id || input.readOnly) return;
+      if (input.nextElementSibling && input.nextElementSibling.classList.contains('linked-slider')) return;
+
+      const cfg = inferSliderBounds(input);
+      const slider = document.createElement('input');
+      slider.type = 'range';
+      slider.className = 'linked-slider';
+      slider.dataset.forInput = input.id;
+      slider.min = cfg.min;
+      slider.max = cfg.max;
+      slider.step = cfg.step;
+      slider.value = cfg.value;
+
+      slider.addEventListener('input', () => {
+        const target = document.getElementById(slider.dataset.forInput);
+        if (!target) return;
+        syncingSlider = true;
+        target.value = slider.value;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+        syncingSlider = false;
+      });
+
+      input.addEventListener('input', () => {
+        if (syncingSlider) return;
+        setSliderFromInput(slider, input);
+      });
+
+      input.insertAdjacentElement('afterend', slider);
+    });
+  }
+
+  function syncPanelSliders(type) {
+    const panelSuffix = panelByType[type];
+    const panel = panelSuffix ? document.getElementById('panel-' + panelSuffix) : null;
+    if (!panel) return;
+
+    panel.querySelectorAll('.linked-slider').forEach(slider => {
+      const input = document.getElementById(slider.dataset.forInput);
+      if (!input) return;
+      setSliderFromInput(slider, input);
+    });
+  }
+
+  function scheduleCalculate(type) {
+    clearTimeout(calcTimers[type]);
+    calcTimers[type] = setTimeout(() => calculate(type), 80);
+  }
+
+  function handleAutoInput(event) {
+    if (!sliderModeEnabled) return;
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
+    if (target.id === 'slider-mode-toggle') return;
+    const type = getTypeFromElement(target);
+    scheduleCalculate(type);
+  }
+
+  function toggleSliderMode(enabled) {
+    sliderModeEnabled = enabled;
+    document.body.classList.toggle('slider-mode', enabled);
+    if (enabled) scheduleCalculate(getCurrentType());
+  }
+
+  function randomizePanelInputs(type) {
+    if (type === 'md') {
+      const mean = rand(-3.0, 3.0);
+      const sem = rand(0.08, 1.2);
+      const ciHalf = 1.96 * sem;
+
+      setValue('md-mean', mean, 3);
+      setValue('md-sem', sem, 4);
+      setValue('md-ci-lo', mean - ciHalf, 3);
+      setValue('md-ci-hi', mean + ciHalf, 3);
+
+      const pvalMean = Math.abs(mean) < 0.05 ? (mean >= 0 ? 0.35 : -0.35) : mean;
+      setValue('md-pval-mean', pvalMean, 3);
+      setValue('md-pval', rand(0.001, 0.2), 4);
+      setValue('md-threshold', rand(-1.2, 1.2), 3);
+      setValue('md-prior-mean', rand(-2.0, 2.0), 3);
+      setValue('md-prior-sd', rand(0.2, 2.5), 3);
+    } else if (type === 'or') {
+      const orVal = rand(0.6, 2.2);
+      const se = rand(0.08, 0.55);
+      const logOR = Math.log(orVal);
+      const ciHalf = 1.96 * se;
+
+      setValue('or-or', orVal, 3);
+      setValue('or-se', se, 4);
+      setValue('or-ci-lo', Math.exp(logOR - ciHalf), 3);
+      setValue('or-ci-hi', Math.exp(logOR + ciHalf), 3);
+      setValue('or-pval-or', rand(0.6, 2.2), 3);
+      setValue('or-pval', rand(0.001, 0.2), 4);
+      setValue('or-threshold', rand(0.8, 1.6), 3);
+      setValue('or-prior-mean', rand(-0.5, 0.5), 3);
+      setValue('or-prior-sd', rand(0.15, 1.0), 3);
+    } else if (type === 'rr') {
+      const rrVal = rand(0.5, 1.9);
+      const se = rand(0.08, 0.55);
+      const logRR = Math.log(rrVal);
+      const ciHalf = 1.96 * se;
+
+      setValue('rr-rr', rrVal, 3);
+      setValue('rr-se', se, 4);
+      setValue('rr-ci-lo', Math.exp(logRR - ciHalf), 3);
+      setValue('rr-ci-hi', Math.exp(logRR + ciHalf), 3);
+      setValue('rr-pval-rr', rand(0.5, 1.9), 3);
+      setValue('rr-pval', rand(0.001, 0.2), 4);
+      setValue('rr-threshold', rand(0.7, 1.4), 3);
+      setValue('rr-prior-mean', rand(-0.5, 0.5), 3);
+      setValue('rr-prior-sd', rand(0.15, 1.0), 3);
+    }
+
+    deriveFromCI(type);
+    deriveFromPval(type);
+    syncPanelSliders(type);
+    clearError(type);
+    if (sliderModeEnabled) {
+      scheduleCalculate(type);
+    } else {
+      hideResult(type);
+    }
+  }
+
+  function resetPanelInputs(type) {
+    const panelSuffix = panelByType[type];
+    const panel = panelSuffix ? document.getElementById('panel-' + panelSuffix) : null;
+    if (!panel) return;
+
+    panel.querySelectorAll('input[type="number"]').forEach(input => {
+      if (!input.id) return;
+      if (Object.prototype.hasOwnProperty.call(defaultNumericValues, input.id)) {
+        input.value = defaultNumericValues[input.id];
+      }
+    });
+
+    deriveFromCI(type);
+    deriveFromPval(type);
+    syncPanelSliders(type);
+    clearError(type);
+    if (sliderModeEnabled) {
+      scheduleCalculate(type);
+    } else {
+      hideResult(type);
+    }
+  }
+
   // ── Normal CDF (Hart approximation) ──────────────────────────────────
   function normalCDF(z) {
     const t = 1 / (1 + 0.2316419 * Math.abs(z));
@@ -921,7 +1326,13 @@
     // Hide result on switch
     document.getElementById(type + '-result').classList.remove('show');
     clearError(type);
+    if (sliderModeEnabled) scheduleCalculate(type);
   }
+
+  captureDefaultNumericValues();
+  buildLinkedSliders();
+  document.addEventListener('input', handleAutoInput);
+  document.addEventListener('change', handleAutoInput);
 
   // ── Inverse normal CDF (for p → z) ───────────────────────────────────
   // Beasley-Springer-Moro approximation
@@ -987,18 +1398,27 @@
 
   // ── Tab switching ─────────────────────────────────────────────────────
   function switchTab(tab) {
+    currentTab = tab;
     document.querySelectorAll('.tab-btn').forEach((b, i) => {
       b.classList.toggle('active', ['means','or','rr'][i] === tab);
     });
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + tab).classList.add('active');
+    if (sliderModeEnabled) scheduleCalculate(getCurrentType());
   }
 
   // ── Toggle prior fields ───────────────────────────────────────────────
   function togglePrior(type) {
     const cb = document.getElementById(type + '-use-prior');
     document.getElementById(type + '-prior-fields').style.display = cb.checked ? 'block' : 'none';
+    const flatPriorRow = document.getElementById(type + '-flat-prior-row');
+    if (flatPriorRow) {
+      flatPriorRow.style.display = cb.checked ? 'none' : 'grid';
+    }
+    if (sliderModeEnabled) scheduleCalculate(type);
   }
+
+  ['md', 'or', 'rr'].forEach(togglePrior);
 
   // ── Derive SE from CI ─────────────────────────────────────────────────
   function deriveFromCI(type) {
@@ -1032,8 +1452,91 @@
     return { label: 'Little or no evidence', cls: 'low' };
   }
 
+  function normalPDF(x, mean, sd) {
+    const u = (x - mean) / sd;
+    return Math.exp(-0.5 * u * u) / (sd * Math.sqrt(2 * Math.PI));
+  }
+
+  function makeAreaPath(xs, ys, sx, sy, baseY) {
+    let d = `M ${sx(xs[0]).toFixed(2)} ${baseY.toFixed(2)}`;
+    for (let i = 0; i < xs.length; i++) {
+      d += ` L ${sx(xs[i]).toFixed(2)} ${sy(ys[i]).toFixed(2)}`;
+    }
+    d += ` L ${sx(xs[xs.length - 1]).toFixed(2)} ${baseY.toFixed(2)} Z`;
+    return d;
+  }
+
+  function renderDistribution(type, cfg) {
+    const chart = document.getElementById(type + '-dist-chart');
+    const title = document.getElementById(type + '-dist-title');
+    if (!chart || !cfg) return;
+
+    const postMean = cfg.postMean;
+    const postSd = cfg.postSd;
+    const tau = cfg.tau;
+    const priorMean = cfg.priorMean;
+    const priorSd = cfg.priorSd;
+    const showPrior = !!cfg.showPrior;
+
+    const priorSdPlot = Number.isFinite(priorSd) ? priorSd : Math.max(10 * postSd, 1);
+    const scaleSd = showPrior ? Math.max(priorSdPlot, postSd) : postSd;
+    const xMin = Math.min(priorMean, postMean, tau) - 4 * scaleSd;
+    const xMax = Math.max(priorMean, postMean, tau) + 4 * scaleSd;
+
+    const n = 260;
+    const xs = Array.from({ length: n }, (_, i) => xMin + (i / (n - 1)) * (xMax - xMin));
+    const postY = xs.map(x => normalPDF(x, postMean, postSd));
+    const priorY = showPrior ? xs.map(x => normalPDF(x, priorMean, priorSdPlot)) : null;
+    const yMax = Math.max(...postY, ...(priorY || [0])) * 1.08;
+
+    const width = 640;
+    const height = 248;
+    const m = { top: 14, right: 16, bottom: 52, left: 42 };
+    const plotW = width - m.left - m.right;
+    const plotH = height - m.top - m.bottom;
+
+    const sx = x => m.left + ((x - xMin) / (xMax - xMin)) * plotW;
+    const sy = y => m.top + (1 - y / yMax) * plotH;
+    const baseY = sy(0);
+
+    const postAreaPath = makeAreaPath(xs, postY, sx, sy, baseY);
+    const priorAreaPath = priorY ? makeAreaPath(xs, priorY, sx, sy, baseY) : '';
+    const tauX = sx(tau);
+
+    const tickStops = [0, 0.25, 0.5, 0.75, 1];
+    const tickMarkup = tickStops.map(stop => {
+      const xVal = xMin + stop * (xMax - xMin);
+      const xPx = sx(xVal);
+      const label = type === 'md' ? xVal.toFixed(2) : Math.exp(xVal).toFixed(2);
+      return `
+        <line x1="${xPx.toFixed(2)}" y1="${baseY.toFixed(2)}" x2="${xPx.toFixed(2)}" y2="${(baseY + 4).toFixed(2)}" stroke="#8a8077" stroke-width="1" />
+        <text x="${xPx.toFixed(2)}" y="${(baseY + 16).toFixed(2)}" text-anchor="middle" fill="#8a8077" font-family="DM Mono, monospace" font-size="10">${label}</text>`;
+    }).join('');
+
+    const tauLabel = type === 'md' ? tau.toFixed(2) : Math.exp(tau).toFixed(2);
+    const xLabel = cfg.xLabel || 'Effect size on analysis scale';
+
+    title.textContent = showPrior ? 'Prior and posterior distributions' : 'Posterior distribution';
+
+    chart.innerHTML = `
+      <svg viewBox="0 0 ${width} ${height}" width="100%" role="img" aria-label="Posterior distribution plot">
+        <rect x="0" y="0" width="${width}" height="${height}" fill="#fff" />
+        ${priorY ? `<path d="${priorAreaPath}" fill="#e69f00" fill-opacity="0.42" />` : ''}
+        <path d="${postAreaPath}" fill="#56b4e9" fill-opacity="0.55" />
+        <line x1="${tauX.toFixed(2)}" y1="${m.top.toFixed(2)}" x2="${tauX.toFixed(2)}" y2="${baseY.toFixed(2)}" stroke="#1a1714" stroke-width="1.5" stroke-dasharray="5 4" />
+        <line x1="${m.left}" y1="${baseY.toFixed(2)}" x2="${(width - m.right).toFixed(2)}" y2="${baseY.toFixed(2)}" stroke="#1a1714" stroke-width="1" />
+        ${tickMarkup}
+        <text x="${(width / 2).toFixed(2)}" y="${(height - 10).toFixed(2)}" text-anchor="middle" fill="#4a4540" font-family="DM Mono, monospace" font-size="10">${xLabel}</text>
+        <text x="${(tauX + 6).toFixed(2)}" y="${(m.top + 11).toFixed(2)}" fill="#1a1714" font-family="DM Mono, monospace" font-size="10">τ = ${tauLabel}</text>
+        <rect x="${(m.left + 2).toFixed(2)}" y="${(m.top + 4).toFixed(2)}" width="10" height="10" fill="#56b4e9" fill-opacity="0.7" />
+        <text x="${(m.left + 16).toFixed(2)}" y="${(m.top + 13).toFixed(2)}" fill="#4a4540" font-family="DM Mono, monospace" font-size="10">Posterior</text>
+        ${priorY ? `<rect x="${(m.left + 96).toFixed(2)}" y="${(m.top + 4).toFixed(2)}" width="10" height="10" fill="#e69f00" fill-opacity="0.6" />
+        <text x="${(m.left + 110).toFixed(2)}" y="${(m.top + 13).toFixed(2)}" fill="#4a4540" font-family="DM Mono, monospace" font-size="10">Prior</text>` : ''}
+      </svg>`;
+  }
+
   // ── Show results ──────────────────────────────────────────────────────
-  function showResult(type, prob, details) {
+  function showResult(type, prob, details, plotConfig) {
     const pct = (prob * 100).toFixed(1);
     document.getElementById(type + '-prob-display').textContent = pct;
     document.getElementById(type + '-bar').style.width = pct + '%';
@@ -1045,6 +1548,7 @@
     detailEl.innerHTML = details.map(d =>
       `<div class="detail-row"><span class="detail-label">${d.label}</span><span class="detail-value">${d.value}</span></div>`
     ).join('');
+    renderDistribution(type, plotConfig);
     document.getElementById(type + '-result').classList.add('show');
   }
 
@@ -1113,6 +1617,8 @@
 
       const { prob, postMean, postSd } = bayesianPosteriorProb(mean, sem, threshold, priorMean, priorSd);
       const pEquiv = (1 - prob).toFixed(4);
+      const showFlatPrior = document.getElementById('md-show-flat-prior').checked;
+      const showPriorInPlot = usePrior || showFlatPrior;
       const details = [
         { label: 'Observed mean diff', value: mean.toFixed(4) },
         { label: 'Standard error', value: sem.toFixed(4) },
@@ -1122,7 +1628,15 @@
         { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
         { label: 'Equiv. 1-tail p (threshold)', value: pEquiv },
       ];
-      showResult('md', prob, details);
+      showResult('md', prob, details, {
+        postMean,
+        postSd,
+        tau: threshold,
+        priorMean: usePrior ? priorMean : 0,
+        priorSd: usePrior ? priorSd : Infinity,
+        showPrior: showPriorInPlot,
+        xLabel: 'Mean difference (analysis scale)'
+      });
     }
 
     else if (type === 'or') {
@@ -1159,6 +1673,8 @@
       const logThreshold = Math.log(threshold);
       const { prob, postMean, postSd } = bayesianPosteriorProb(logOR, se, logThreshold, priorMean, priorSd);
       const pEquiv = (1 - prob).toFixed(4);
+      const showFlatPrior = document.getElementById('or-show-flat-prior').checked;
+      const showPriorInPlot = usePrior || showFlatPrior;
       const details = [
         { label: 'Observed OR', value: orVal.toFixed(4) },
         { label: 'log(OR)', value: logOR.toFixed(4) },
@@ -1170,7 +1686,15 @@
         { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
         { label: 'Equiv. 1-tail p (threshold)', value: pEquiv },
       ];
-      showResult('or', prob, details);
+      showResult('or', prob, details, {
+        postMean,
+        postSd,
+        tau: logThreshold,
+        priorMean: usePrior ? priorMean : 0,
+        priorSd: usePrior ? priorSd : Infinity,
+        showPrior: showPriorInPlot,
+        xLabel: 'OR scale (internally modeled on log scale)'
+      });
     }
 
     else if (type === 'rr') {
@@ -1207,6 +1731,8 @@
       const logThreshold = Math.log(threshold);
       const { prob, postMean, postSd } = bayesianPosteriorProb(logRR, se, logThreshold, priorMean, priorSd);
       const pEquiv = (1 - prob).toFixed(4);
+      const showFlatPrior = document.getElementById('rr-show-flat-prior').checked;
+      const showPriorInPlot = usePrior || showFlatPrior;
       const details = [
         { label: 'Observed RR', value: rrVal.toFixed(4) },
         { label: 'log(RR)', value: logRR.toFixed(4) },
@@ -1218,7 +1744,15 @@
         { label: 'Prior', value: usePrior ? `N(${priorMean}, ${priorSd}²)` : 'Non-informative' },
         { label: 'Equiv. 1-tail p (threshold)', value: pEquiv },
       ];
-      showResult('rr', prob, details);
+      showResult('rr', prob, details, {
+        postMean,
+        postSd,
+        tau: logThreshold,
+        priorMean: usePrior ? priorMean : 0,
+        priorSd: usePrior ? priorSd : Infinity,
+        showPrior: showPriorInPlot,
+        xLabel: 'RR scale (internally modeled on log scale)'
+      });
     }
   }
 </script>
