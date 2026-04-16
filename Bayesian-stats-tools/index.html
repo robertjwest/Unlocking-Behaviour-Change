@@ -740,7 +740,7 @@
   <div class="slider-mode-row">
     <label class="prior-toggle">
       <input type="checkbox" id="slider-mode-toggle" onchange="toggleSliderMode(this.checked)">
-      Slider mode (drag values, auto-update plot)
+      Add sliders
     </label>
   </div>
 
@@ -1307,8 +1307,8 @@
       if (maxLabel) maxLabel.textContent = 'Slider max';
       minInput.value = '';
       maxInput.value = '';
-      minInput.placeholder = 'enter value in text box';
-      maxInput.placeholder = 'enter value in text box';
+      minInput.placeholder = 'optional';
+      maxInput.placeholder = 'optional';
       minInput.step = slider.step;
       maxInput.step = slider.step;
       return;
@@ -1319,8 +1319,8 @@
       if (maxLabel) maxLabel.textContent = 'Slider max';
       minInput.value = '';
       maxInput.value = '';
-      minInput.placeholder = 'set slider min';
-      maxInput.placeholder = 'set slider max';
+      minInput.placeholder = 'optional';
+      maxInput.placeholder = 'optional';
       minInput.step = slider.step;
       maxInput.step = slider.step;
       return;
@@ -1420,6 +1420,7 @@
       slider.dataset.defaultMin = String(cfg.min);
       slider.dataset.defaultMax = String(cfg.max);
       slider.dataset.defaultStep = String(cfg.step);
+      slider.dataset.defaultValue = String(cfg.value);
       slider.dataset.notchCount = String(sliderNotchCount);
 
       const numberline = document.createElement('div');
@@ -1444,7 +1445,7 @@
       minInput.type = 'number';
       minInput.step = cfg.step;
       minInput.value = '';
-      minInput.placeholder = 'enter value in text box';
+      minInput.placeholder = 'optional';
       minInput.id = input.id + '-slider-min';
       if (Number.isFinite(cfg.hardMin)) minInput.min = cfg.hardMin;
       if (Number.isFinite(cfg.hardMax)) minInput.max = cfg.hardMax;
@@ -1459,7 +1460,7 @@
       maxInput.type = 'number';
       maxInput.step = cfg.step;
       maxInput.value = '';
-      maxInput.placeholder = 'enter value in text box';
+      maxInput.placeholder = 'optional';
       maxInput.id = input.id + '-slider-max';
       if (Number.isFinite(cfg.hardMin)) maxInput.min = cfg.hardMin;
       if (Number.isFinite(cfg.hardMax)) maxInput.max = cfg.hardMax;
@@ -1599,12 +1600,22 @@
       const defaultMin = parseNum(slider.dataset.defaultMin);
       const defaultMax = parseNum(slider.dataset.defaultMax);
       const defaultStep = parseNum(slider.dataset.defaultStep);
+      const defaultValue = parseNum(slider.dataset.defaultValue);
       if (Number.isFinite(defaultMin) && Number.isFinite(defaultMax) && defaultMax > defaultMin) {
         slider.min = defaultMin;
         slider.max = defaultMax;
       }
       if (Number.isFinite(defaultStep) && defaultStep > 0) {
         slider.step = defaultStep;
+      }
+      if (Number.isFinite(defaultValue)) {
+        const min = parseNum(slider.min);
+        const max = parseNum(slider.max);
+        if (Number.isFinite(min) && Number.isFinite(max) && max > min) {
+          slider.value = Math.min(max, Math.max(min, defaultValue));
+        } else {
+          slider.value = defaultValue;
+        }
       }
       if (minInput) minInput.value = '';
       if (maxInput) maxInput.value = '';
