@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Practical Guide — Using Bayesian Statistics to Evaluate an Intervention</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2eb;
+    --surface: #fffef9;
+    --surface2: #efeae0;
+    --ink: #1a1714;
+    --ink-2: #4a4540;
+    --ink-3: #8a8077;
+    --accent: #c84b2f;
+    --accent-light: #f5e8e4;
+    --green: #2a6e4e;
+    --green-light: #e2f0ea;
+    --border: #d8d0c4;
+    --shadow: 0 2px 16px rgba(26,23,20,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink-2);
+    line-height: 1.65;
+    padding: 2rem 1rem 5rem;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(26,23,20,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,23,20,0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 820px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- Header ---------- */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+    margin-bottom: 0.6rem;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4.5vw, 2.9rem);
+    line-height: 1.08;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  .subtitle {
+    margin-top: 0.8rem;
+    font-family: 'DM Serif Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* ---------- Sticky nav ---------- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.55rem 0;
+    margin-bottom: 2rem;
+    background: rgba(245,242,235,0.9);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    text-decoration: none;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  nav a:hover { color: var(--ink); background: var(--surface2); border-color: var(--border); }
+  nav a.gloss { color: var(--accent); }
+  nav a.calc {
+    color: var(--bg);
+    background: var(--accent);
+    border-color: var(--accent);
+    font-weight: 500;
+    margin-left: auto;
+  }
+  nav a.calc:hover { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+
+  a.cta-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1.5px solid var(--accent);
+    padding-bottom: 0.5px;
+    transition: background 0.15s;
+  }
+  a.cta-link:hover { background: var(--accent-light); }
+
+  /* ---------- Typography ---------- */
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: clamp(1.5rem, 3vw, 1.9rem);
+    color: var(--ink);
+    margin: 2.6rem 0 0.9rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 4rem;
+  }
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 1.08rem;
+    color: var(--accent);
+    margin: 1.7rem 0 0.5rem;
+    scroll-margin-top: 4rem;
+  }
+  p { margin-bottom: 0.95rem; }
+  strong { color: var(--ink); font-weight: 600; }
+  em { font-style: italic; }
+  .lead { font-size: 1.05rem; }
+
+  ul, ol { margin: 0 0 1rem 1.3rem; }
+  li { margin-bottom: 0.5rem; padding-left: 0.2rem; }
+  ol li::marker { color: var(--accent); font-weight: 600; font-family: 'DM Mono', monospace; }
+  ul li::marker { color: var(--accent); }
+
+  code, .mono { font-family: 'DM Mono', monospace; font-size: 0.9em; color: var(--ink);
+    background: var(--surface2); padding: 0.05rem 0.35rem; border-radius: 3px; }
+
+  /* ---------- Glossary links in body ---------- */
+  a.gl {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--accent);
+    cursor: help;
+    transition: background 0.15s;
+    padding-bottom: 0.5px;
+  }
+  a.gl:hover { background: var(--accent-light); }
+
+  /* ---------- Callout boxes ---------- */
+  .box {
+    border-radius: 6px;
+    padding: 1.15rem 1.35rem;
+    margin: 1.4rem 0;
+    box-shadow: var(--shadow);
+    font-size: 0.95rem;
+  }
+  .box .box-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 0.6rem;
+  }
+  .box p:last-child, .box ul:last-child, .box ol:last-child { margin-bottom: 0; }
+  .box ul, .box ol { margin-top: 0.4rem; }
+
+  .box.supply { background: var(--accent-light); border-left: 4px solid var(--accent); }
+  .box.supply .box-label { color: var(--accent); }
+
+  .box.example { background: var(--green-light); border-left: 4px solid var(--green); }
+  .box.example .box-label { color: var(--green); }
+  .box.example .result { color: var(--green); font-weight: 600; }
+
+  .box.caution { background: var(--accent-light); border-left: 4px solid var(--accent); }
+  .box.caution .box-label { color: var(--accent); }
+
+  .box.neutral { background: var(--surface2); border-left: 4px solid var(--ink-3); }
+  .box.neutral .box-label { color: var(--ink-2); }
+
+  .box.maths { background: var(--surface2); border-left: 4px solid var(--ink-3); }
+  .box.maths .box-label { color: var(--ink-2); }
+  .formula {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.92rem;
+    color: var(--ink);
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.7rem 0.8rem;
+    margin: 0.7rem 0;
+    overflow-x: auto;
+  }
+
+  /* ---------- Reference table ---------- */
+  .table-wrap { overflow-x: auto; margin: 1.2rem 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  thead th {
+    background: var(--ink);
+    color: var(--bg);
+    text-align: left;
+    font-weight: 600;
+    padding: 0.7rem 0.85rem;
+    font-size: 0.82rem;
+  }
+  tbody td { padding: 0.7rem 0.85rem; border-top: 1px solid var(--border); vertical-align: top; }
+  tbody tr:nth-child(even) { background: var(--surface2); }
+
+  /* ---------- Glossary ---------- */
+  .glossary-intro { margin-bottom: 1.2rem; }
+  .glossary-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.35rem;
+    margin-bottom: 1rem;
+    scroll-margin-top: 4rem;
+    transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+  }
+  .glossary-entry:target {
+    border-left-color: var(--accent);
+    background: var(--accent-light);
+    box-shadow: var(--shadow);
+  }
+  .glossary-entry h3 {
+    margin: 0 0 0.4rem;
+    color: var(--ink);
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: 1.25rem;
+  }
+  .glossary-entry .term-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+  .glossary-entry p { margin-bottom: 0.6rem; font-size: 0.95rem; }
+  .back-link {
+    display: inline-block;
+    margin-top: 0.3rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  .back-link:hover { text-decoration: underline; }
+
+  /* ---------- Checklist ---------- */
+  ol.checklist li { margin-bottom: 0.65rem; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* ---------- Back to top ---------- */
+  #toTop {
+    position: fixed;
+    right: 1.2rem;
+    bottom: 1.2rem;
+    z-index: 20;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    box-shadow: var(--shadow);
+  }
+  #toTop.show { opacity: 1; pointer-events: auto; }
+
+  @media (max-width: 560px) {
+    body { padding: 1.25rem 0.85rem 4rem; }
+    .box { padding: 1rem 1.05rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="header-label">A Practical Guide</div>
+    <h1>Using Bayesian Statistics to Evaluate an Intervention</h1>
+    <div class="subtitle">Routine quality monitoring, A/B testing, and how to do it with the Bayesian Posterior Calculator</div>
+  </header>
+
+  <nav>
+    <a href="#top">Intro</a>
+    <a href="#one-idea">The idea</a>
+    <a href="#part1">Part 1 · Monitoring</a>
+    <a href="#part2">Part 2 · Improvements</a>
+    <a href="#part3">Part 3 · The calculator</a>
+    <a href="#reading">Reading results</a>
+    <a href="#checklist">Checklist</a>
+    <a href="#glossary" class="gloss">Glossary ↓</a>
+    <a href="index.html" class="calc" target="_blank" rel="noopener">Open the calculator ↗</a>
+  </nav>
+
+  <div id="top"></div>
+
+  <p class="lead">This guide shows how to use the Bayes calculator using simple Bayesian statistics. It is not a primer in Bayesian stats or stats in general.</p>
+
+  <p>The Bayes calculator helps you answer a fundamental question in intervention evaluation: <strong>“Is the intervention doing what I want it to do?”</strong></p>
+
+  <p>This guide covers the principles behind ongoing monitoring (Part 1) and testing potential improvements (Part 2) and then covers step-by-step the use of the Bayes <a class="gl" href="#g-posterior">posterior likelihood</a> calculator that you can use to work out the likelihood that a hypothesis is correct using the output from your favourite stats program (Part 3).</p>
+
+  <!-- THE ONE IDEA -->
+  <h2 id="one-idea">The one idea behind all of this</h2>
+  <p>Classical statistical hypothesis testing asks: <em>“Is there a statistically significant effect?”</em> That gives you a p-value, which is easy to misread and says little about whether an effect is <strong>big enough to matter</strong>.</p>
+  <p>The Bayesian approach asks a more useful question: <strong>“Given the data so far, what is the probability that the true effect is at least as large as the smallest effect I care about?”</strong> The answer is a number between 0% and 100% that anyone can understand — for example <em>“There is a 93% probability that the new version improves outcomes by 20%.”</em></p>
+
+  <div class="box supply">
+    <div class="box-label">You supply three things</div>
+    <ol>
+      <li><strong>An outcome</strong> you care about (activity minutes, quit rate, retention…).</li>
+      <li><strong>A threshold</strong> — the smallest effect that is genuinely worth having. This is a judgement, not a calculation.</li>
+      <li><strong>Your measured result</strong> — the effect you observed, with its uncertainty (a <a class="gl" href="#g-se">standard error</a>, a <a class="gl" href="#g-ci">confidence interval</a>, or a p-value).</li>
+    </ol>
+    <p style="margin-top:0.6rem;"><em>The calculator returns the probability that the true effect clears your threshold.</em></p>
+  </div>
+
+  <!-- PART 1 -->
+  <h2 id="part1">Part 1 · Ongoing evaluation (routine quality monitoring)</h2>
+  <p>Here you are monitoring an ongoing intervention and want continual reassurance that it is still working as expected: the statistical equivalent of a quality-control chart. Data arrive over time, and you re-check periodically.</p>
+
+  <h3>Set it up once, before you start</h3>
+  <ol>
+    <li><strong>Choose your outcome</strong> and how it is measured. Keep it stable so results stay comparable over time.</li>
+    <li><strong>Choose your threshold</strong> — the smallest worthwhile effect. If any improvement at all counts, the threshold is 0 (or 1 for odds/risk ratios). More often there is a level below which the effect is not worth the cost or effort; use that.</li>
+    <li><strong>Choose your action rules</strong> in advance, e.g. “treat as working if the probability reaches 95%; treat as not worth continuing if it falls to 10%; otherwise keep collecting.” Deciding these up front stops you moving the goalposts later.</li>
+  </ol>
+
+  <h3>Then, at each review point</h3>
+  <ol>
+    <li><strong>Pool all the data collected so far</strong> and obtain the effect estimate with its <a class="gl" href="#g-se">standard error</a> (or a <a class="gl" href="#g-ci">confidence interval</a>, or a <a class="gl" href="#g-one-tailed">one-tailed p-value</a>).</li>
+    <li><strong>Enter it into the calculator</strong> with your threshold.</li>
+    <li><strong>Read off the probability</strong> that the true effect exceeds the threshold, and act according to your pre-set rules.</li>
+  </ol>
+
+  <div class="box example">
+    <div class="box-label">Worked example — a continuous outcome</div>
+    <p>An app aims to increase physical activity. You decide the smallest worthwhile effect is <strong>5 extra minutes per day</strong> (threshold = 5). After a month, pooling all users to date, the observed <a class="gl" href="#g-mean-difference">mean difference</a> versus a comparator is <strong>7.2 minutes</strong>, with a standard error of <strong>2.5</strong>.</p>
+    <p>In the calculator: <span class="mono">Mean Difference</span> tab → enter mean difference <span class="mono">7.2</span>, SE <span class="mono">2.5</span>, threshold <span class="mono">5</span>.</p>
+    <p>Result: about an <span class="result">81% probability</span> that the true effect is at least 5 minutes a day. Encouraging, but short of a 95% action bar — so under the rules above you would keep collecting data and re-check.</p>
+  </div>
+
+  <h3>Why re-checking as data accumulate is fine</h3>
+  <p>With repeated significance tests, looking again and again inflates the chance of a false positive finding, so people invent complex corrections. A Bayesian <a class="gl" href="#g-posterior">posterior probability</a> does not have this problem in the same way: it is always a valid summary of what the data say so far, so you may look as often as you like.</p>
+
+  <div class="box caution">
+    <div class="box-label">But don’t fool yourself</div>
+    <p>Being able to look freely is not a licence to stop the moment the number looks good. Two simple safeguards keep you honest:</p>
+    <ul>
+      <li><strong>Set the threshold at the smallest effect that genuinely matters</strong> — not at zero. A meaningful threshold is much harder for random noise to clear.</li>
+      <li><strong>Consider a mildly sceptical <a class="gl" href="#g-prior">prior</a></strong> (Part 3). It pulls early, noisy results towards “no effect” until real evidence accumulates.</li>
+    </ul>
+    <p style="margin-top:0.6rem;"><em>Both make the probability harder to inflate by chance alone.</em></p>
+  </div>
+
+  <!-- PART 2 -->
+  <h2 id="part2">Part 2 · Testing improvements</h2>
+  <p>Now you have a proposed improvement. Call the current version <strong>A</strong> and the new version <strong>B</strong>. The question is not simply “is B different?” but “is B better by an amount worth whatever the cost of switching might be?”</p>
+
+  <h3>Run the test cleanly</h3>
+  <ul>
+    <li><strong>Randomly allocate</strong> users or occasions to A or B, so the two sets of numbers are comparable.</li>
+    <li><strong>Pre-specify one primary outcome</strong> and the threshold before looking at results.</li>
+    <li><strong>Let it run</strong> until you have a reasonable amount of data, then analyse the difference between B and A.</li>
+  </ul>
+
+  <h3>Turn the result into a decision</h3>
+  <p>Your A/B platform (or a simple analysis) will give you the difference between B and A: a <a class="gl" href="#g-mean-difference">difference in means</a> for a numeric outcome, or an <a class="gl" href="#g-odds-ratio">odds ratio</a> or <a class="gl" href="#g-risk-ratio">risk ratio</a> for a yes/no outcome, each with a confidence interval. Feed that into the calculator with your threshold.</p>
+
+  <div class="box example">
+    <div class="box-label">Worked example — a yes/no outcome</div>
+    <p>You test a new reminder (B) against the current one (A) for 4-week retention on an app. Your analysis reports an <strong>odds ratio of 1.28</strong> for B versus A, with a 95% confidence interval of <strong>1.05 to 1.56</strong>. You decide switching is only worthwhile if the odds of retention rise by at least 10% — a <strong>threshold OR of 1.10</strong>.</p>
+    <p>In the calculator: <span class="mono">Odds Ratio</span> tab → enter OR <span class="mono">1.28</span>, then the lower and upper CI (<span class="mono">1.05</span> and <span class="mono">1.56</span>) so it derives the standard error → threshold <span class="mono">1.10</span>.</p>
+    <p>Result: about a <span class="result">93% probability</span> that B beats A by a worthwhile margin (an OR of at least 1.10). Just short of a 95% bar — so if switching is cheap and low-risk you might adopt anyway; if it is costly, run a little longer.</p>
+  </div>
+
+  <h3>A note on being appropriately sceptical</h3>
+  <p>Most tweaks make little difference, and small samples throw up flukes. A <strong>mildly sceptical <a class="gl" href="#g-prior">‘prior’</a></strong> — centred on “no difference” with modest uncertainty — encodes that realism. It tempers over-excitement from a lucky early result while still letting a genuinely strong effect come through. If you prefer to let the data speak entirely for themselves, leave the prior off (the default); the result is then equivalent to the standard <a class="gl" href="#g-one-tailed">one-tailed test</a>, but reframed as an intuitive probability.</p>
+
+  <!-- PART 3 -->
+  <h2 id="part3">Part 3 · Using the Bayes calculator</h2>
+  <p><a class="cta-link" href="index.html" target="_blank" rel="noopener">Open the calculator in a new tab ↗</a> and follow along with the steps below.</p>
+
+  <h3>Step 1 — Pick the tab that matches your outcome</h3>
+  <p>Across the top are four tabs. Choose by the kind of outcome you have:</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Your outcome looks like…</th><th>Example</th><th>Use this tab</th><th>Threshold means…</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>A number / score</td>
+          <td>minutes of activity, weight, mood score, £ spent</td>
+          <td><a class="gl" href="#g-mean-difference">Mean Difference</a></td>
+          <td>smallest difference worth having (0 = any effect is worth having)</td>
+        </tr>
+        <tr>
+          <td>Yes / no, per person</td>
+          <td>quit / not, retained / not, clicked / not</td>
+          <td><a class="gl" href="#g-odds-ratio">Odds Ratio</a> or <a class="gl" href="#g-risk-ratio">Risk Ratio</a></td>
+          <td>1 = no effect; e.g. 1.2 = 20% higher odds or risk; 0.8 = 20% lower odds or risk</td>
+        </tr>
+        <tr>
+          <td>Strength of a link</td>
+          <td>how strongly app use tracks with outcome</td>
+          <td><a class="gl" href="#g-correlation">Correlation</a></td>
+          <td>0 = any association; 0.1 = at least a small one</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p><em>For a yes/no outcome you can use either Odds Ratio or Risk Ratio; risk ratio (e.g. “retention was 1.15 times as likely”) is often the more intuitive to explain.</em></p>
+
+  <h3>Step 2 — Enter the output from your stats program</h3>
+  <p>Each tab offers two input methods; use whichever matches the numbers you have obtained from your stats program.</p>
+  <ul>
+    <li><strong>Estimate + SE / CI</strong> — enter the observed effect and its <a class="gl" href="#g-se">standard error</a>. If you only have a 95% confidence interval, type the lower and upper limits into the CI fields and the calculator derives the standard error for you.</li>
+    <li><strong>One-tailed p-value</strong> — enter the observed effect and a <a class="gl" href="#g-one-tailed">one-tailed p-value</a> in the direction of that effect. Use this when a report gives you a p-value but not a standard error.</li>
+  </ul>
+
+  <div class="box caution">
+    <div class="box-label">Two things to get right</div>
+    <ul>
+      <li><strong>The p-value must be one-tailed</strong> and in the direction your effect actually went. If you only have the usual <a class="gl" href="#g-two-tailed">two-sided p-value</a> and the effect is in the expected direction, halve the p value.</li>
+      <li><strong>Ratios are handled on the log scale automatically.</strong> Just enter odds ratios, risk ratios and their confidence limits on their natural scale (e.g. 1.28, 1.05, 1.56); the calculator does the rest.</li>
+    </ul>
+  </div>
+
+  <h3>Step 3 — Set the threshold</h3>
+  <p>The threshold is the heart of the method: the smallest effect worth caring about. For a numeric outcome, 0 means “any effect at all”; set it higher if you want to check that an effect is bigger than some worthwhile amount. For odds and risk ratios, 1 means “no effect”; set it to, say, 1.2 (a 20% increase) or 0.8 (a 20% reduction). For a correlation, a threshold of 0 means you are interested in any positive association.</p>
+
+  <h3>Step 4 — Add a ‘prior’ (optional)</h3>
+  <p>Leave this off to let just these data speak for themselves. Tick <span class="mono">Use informative prior</span> when you have genuine <a class="gl" href="#g-prior">prior</a> knowledge, say from a previous data set. You give the prior a <strong>mean</strong> (your best guess before seeing the data — often 0, or 1 for ratios, meaning “no effect”) and an <strong>SD</strong> (how sure you are — smaller means more sceptical). The result then blends your prior with the data. There is also a tick-box to draw the flat (non-informative) prior on the plot for comparison.</p>
+
+  <h3>Step 5 — Read the result</h3>
+  <ul>
+    <li><strong>The big percentage</strong> is the headline: the probability that the true effect exceeds your threshold.</li>
+    <li><strong>The coloured chip</strong> gives a plain-language reading of how strong that is.</li>
+    <li><strong>The detail rows</strong> show the <a class="gl" href="#g-posterior">posterior</a> mean, SD and median (your best single estimate and its uncertainty after the analysis), and an “equivalent one-tailed p-value” for readers who still think in those terms.</li>
+    <li><strong>The distribution plot</strong> shows the full range of plausible values for the true effect; the dashed line is your threshold. The share of the curve to the right of the dashed line is the headline probability.</li>
+  </ul>
+
+  <h3>Optional — the sliders</h3>
+  <p>Tick <span class="mono">Add sliders</span> to alter your inputs and watch the probability and the curve update live. This is excellent for building intuition: for instance, seeing how much more data (a smaller standard error) you would need to push the probability past your action threshold, or how sensitive the answer is to where you set the threshold.</p>
+
+  <!-- READING -->
+  <h2 id="reading">Reading the numbers sensibly</h2>
+  <div class="box neutral">
+    <div class="box-label">A rough reading of the headline probability</div>
+    <ul>
+      <li><strong style="color:var(--green)">95% or more</strong> — strong evidence the effect clears your threshold; act with confidence.</li>
+      <li><strong>80–95%</strong> — probably worthwhile, but you may want more data before a costly decision.</li>
+      <li><strong>50–80%</strong> — leaning positive but uncertain; keep collecting.</li>
+      <li><strong style="color:var(--accent)">Below 50%</strong> — the effect more likely falls short of your threshold than clears it.</li>
+    </ul>
+    <p style="margin-top:0.6rem;"><em>These bands are conventions, not laws. Choose action thresholds that fit the stakes of your decision.</em></p>
+  </div>
+
+  <h3>Assumptions and limits (worth knowing)</h3>
+  <ul>
+    <li><strong>One comparison, one outcome at a time.</strong> If you monitor several outcomes at once, a couple may cross a high bar by chance; interpret accordingly.</li>
+    <li><strong>It assumes your estimate follows an approximately ‘normal’ distribution</strong> (on the log scale for ratios, the Fisher-z scale for correlations). This holds well for the effect sizes and sample sizes typical of app evaluation.</li>
+    <li><strong>Quality in, quality out.</strong> The maths cannot rescue a biased comparison. Randomise A/B tests where possible, and keep monitored outcomes measured consistently.</li>
+    <li><strong>The threshold is a judgement.</strong> Most of the method’s value comes from choosing it thoughtfully and in advance.</li>
+  </ul>
+
+  <h3>The mathematics, in one box (skip if you like)</h3>
+  <div class="box maths">
+    <div class="box-label">For the curious</div>
+    <p>The calculator uses a normal model. With a non-informative <a class="gl" href="#g-prior">prior</a>, the probability that the true effect θ exceeds threshold τ is:</p>
+    <div class="formula">P(θ ≥ τ | data) = 1 − Φ( (τ − estimate) / SE )</div>
+    <p>where Φ is the standard normal cumulative distribution. With an informative prior N(μ₀, σ₀²) the <a class="gl" href="#g-posterior">posterior</a> is also normal, combining prior and data in inverse-variance (precision) proportion:</p>
+    <div class="formula">posterior mean = (μ₀/σ₀² + estimate/SE²) / (1/σ₀² + 1/SE²)<br>posterior SD = 1 / √(1/σ₀² + 1/SE²)</div>
+    <p style="margin-bottom:0;"><em>The key equivalence: with a flat prior and a threshold of 0 (or 1 for ratios), the posterior probability of a positive effect equals 1 minus the <a class="gl" href="#g-one-tailed">one-tailed p-value</a>. The Bayesian framing simply generalises this to any threshold and lets you fold in prior knowledge.</em></p>
+  </div>
+
+  <!-- CHECKLIST -->
+  <h2 id="checklist">Quick checklist</h2>
+  <ol class="checklist">
+    <li>Decide the outcome, the threshold, and your action rules <em>before looking at data</em>.</li>
+    <li>Pick the matching tab (numeric → Mean Difference; yes/no → Odds or Risk Ratio; link → Correlation).</li>
+    <li>Enter your result (estimate + SE/CI, or a one-tailed p-value) and the threshold.</li>
+    <li>Add a sceptical prior if early or small-sample data could mislead (optional).</li>
+    <li>Read the probability, check it against your action rules, and decide.</li>
+  </ol>
+
+  <!-- GLOSSARY -->
+  <h2 id="glossary">Glossary</h2>
+  <p class="glossary-intro">Terms marked with a <a class="gl" href="#glossary">dotted underline</a> in the text link here. Use your browser’s Back button, or the “back” link in each entry, to return to where you were reading.</p>
+
+  <div class="glossary-entry" id="g-odds-ratio">
+    <h3>Odds ratio <span class="term-tag">(OR)</span></h3>
+    <p>A way of comparing the <em>odds</em> of an outcome between two groups or conditions. The odds of an outcome are the probability that it happens divided by the probability that it doesn’t (so a 25% chance is odds of 0.25 / 0.75 = 1 to 3). The odds ratio divides the odds in one group by the odds in the other.</p>
+    <p>OR = 1 means the odds are the same in both groups; greater than 1 means higher odds in the first; less than 1 means lower. Note that an odds ratio is <em>not</em> the same as “how many times more likely” — for common outcomes it exaggerates the difference compared with the risk ratio. The calculator works with it on the log scale, because log(OR) behaves more like a normal distribution.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-risk-ratio">
+    <h3>Risk ratio <span class="term-tag">(RR, “relative risk”)</span></h3>
+    <p>Despite the name, the “risk” here simply means the <em>proportion</em> (or probability) of cases showing the outcome — it need not be anything bad. The term is a hangover from epidemiology, where the outcomes of interest were usually risks of disease, so any probability of an event came to be called a “risk”.</p>
+    <p>A risk ratio is therefore really just the ratio of <strong>two likelihoods that happen to be labelled “risks”</strong>: the proportion with the outcome in one group divided by the proportion in the other. RR = 1 means no difference; 1.5 means the outcome is 1.5 times as likely; 0.8 means 20% less likely. It is usually easier to explain than an odds ratio (“1.5 times as likely”). Like the OR, it is analysed on the log scale.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-mean-difference">
+    <h3>Mean difference</h3>
+    <p>For an outcome measured as a number — a <em>continuous</em> outcome such as minutes of activity, a mood score, or pounds spent — the mean difference is simply the average value in one group or condition minus the average in another (or the average amount of change). A positive or negative value shows the direction; zero means no difference. This is the natural effect measure for numeric outcomes.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-correlation">
+    <h3>Correlation <span class="term-tag">(Pearson’s r)</span></h3>
+    <p>A measure of how strongly two numeric variables move together, running from −1 (a perfect inverse relationship) through 0 (no straight-line relationship) to +1 (a perfect positive one).</p>
+    <p>Here we use <strong>Pearson’s correlation coefficient</strong>, which captures the strength of a <em>straight-line</em> (linear) association. It says nothing about non-linear patterns and can be pulled about by extreme values, so it is best read alongside a scatterplot. The calculator handles it internally on the Fisher-z scale, where its sampling distribution is closer to normal.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-prior">
+    <h3>Prior</h3>
+    <p>In Bayesian analysis, what you believe about the size of the effect <em>before</em> taking the current data into account, expressed as a probability distribution (a best guess plus how uncertain you are about it).</p>
+    <p>A <em>non-informative</em> (or <em>flat</em>) prior deliberately expresses no opinion and lets the data speak entirely for themselves. An <em>informative</em> prior encodes real prior knowledge — for example results from an earlier study — or a deliberate dose of scepticism (typically centred on “no effect”). The prior is combined with the data to produce the posterior.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-posterior">
+    <h3>Posterior likelihood</h3>
+    <p>What you believe about the effect <em>after</em> combining your prior with the observed data: the updated probability. In this calculator the headline output is a posterior probability — the probability, given the data (and any prior), that the true effect exceeds your threshold, i.e. that your hypothesis is correct.</p>
+    <p><span class="term-tag">A note on wording:</span> statisticians usually call this the <em>posterior probability</em>. The word <em>likelihood</em> on its own is normally reserved for a related but different ingredient — how probable the observed data are for each possible effect size. Prior × likelihood, suitably scaled, gives the posterior. Nothing in how you use the calculator depends on this distinction.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-se">
+    <h3>Standard error <span class="term-tag">(SE)</span></h3>
+    <p>A measure of how much an estimate would jump around from one sample to the next: in effect, the standard deviation of the estimate itself. A smaller SE means a more precise estimate, and usually comes from more data.</p>
+    <p>The SE drives both the width of a confidence interval and the spread of the posterior. As a rough guide, a 95% confidence interval runs from about the estimate minus two SEs to the estimate plus two SEs.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-ci">
+    <h3>Confidence interval <span class="term-tag">(CI)</span></h3>
+    <p>A range of values, calculated from the data, designed to contain the true effect with a stated level of confidence — almost always 95%. Loosely, if you repeated the study many times, about 95% of the intervals produced this way would contain the true value.</p>
+    <p>A narrow interval means a precise estimate. If a 95% CI for a difference excludes 0 (or, for a ratio, excludes 1), the result is “statistically significant” at the two-sided 5% level. The calculator can work out the standard error for you from a 95% CI.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-one-tailed">
+    <h3>One-tailed p-value</h3>
+    <p>The probability of getting an effect at least as large as the one you observed, <em>in one specified direction</em>, if the true effect were actually nil. It suits a directional question such as “does the app increase activity?”.</p>
+    <p>In this calculator you enter a one-tailed p-value pointing in the direction of your observed effect.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <div class="glossary-entry" id="g-two-tailed">
+    <h3>Two-tailed p-value <span class="term-tag">(also “two-sided”)</span></h3>
+    <p>The probability of getting an effect at least as extreme as the one observed <em>in either direction</em>, if the true effect were nil. This is the usual default reported by statistics software.</p>
+    <p>For the symmetric tests used here, the one-tailed p-value in the observed direction is simply <strong>half</strong> the two-tailed value — so if you only have the two-tailed number and the effect points the way you expected, halve it before entering it.</p>
+    <button class="back-link" onclick="history.back()">↩ back to where you were</button>
+  </div>
+
+  <footer>
+    <span>Bayesian Posterior Calculator — companion guide</span>
+    <span>Assumes approximate normality · Non-informative prior by default</span>
+  </footer>
+
+</div>
+
+<button id="toTop" aria-label="Back to top" title="Back to top">↑</button>
+
+<script>
+  const toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 600) toTop.classList.add('show');
+    else toTop.classList.remove('show');
+  });
+  toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+</script>
+</body>
+</html>
