@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Making Questionnaire</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --paper:#EBEEF3;
+    --surface:#FFFFFF;
+    --ink:#15223C;
+    --muted:#5A6377;
+    --faint:#8A93A6;
+    --line:#DCE1EA;
+    --navy:#2C4A86;
+    --navy-deep:#213A6B;
+    --navy-soft:#E8EDF7;
+    --gold:#B98A2E;
+    --gold-soft:#F3E7C9;
+    --danger:#B23A48;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(21,34,60,.06), 0 8px 30px rgba(21,34,60,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 96px}
+
+  /* ---- Header ---- */
+  header.masthead{margin-bottom:26px}
+  .eyebrow{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--navy);font-weight:600;margin:0 0 10px
+  }
+  h1{
+    font-family:"Fraunces",Georgia,serif;font-weight:600;
+    font-size:clamp(30px,5.2vw,46px);line-height:1.05;margin:0 0 12px;
+    letter-spacing:-.01em;color:var(--ink)
+  }
+  .lede{max-width:60ch;color:var(--muted);margin:0 0 22px;font-size:16px}
+  .legend{
+    display:flex;flex-wrap:wrap;gap:8px 10px;padding:14px 16px;
+    background:var(--surface);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow)
+  }
+  .legend b{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;border-radius:6px;background:var(--navy-soft);
+    color:var(--navy-deep);font-size:12px;font-weight:700;margin-right:6px;flex:none
+  }
+  .legend span{display:inline-flex;align-items:center;font-size:13px;color:var(--muted);white-space:nowrap}
+
+  /* ---- Progress ---- */
+  .toolbar{
+    position:sticky;top:0;z-index:20;margin:22px -20px 22px;padding:12px 20px;
+    background:rgba(235,238,243,.86);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:14px
+  }
+  .prog{flex:1;height:8px;border-radius:99px;background:var(--navy-soft);overflow:hidden}
+  .prog>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--navy),var(--gold));transition:width .35s ease}
+  .prog-label{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+
+  /* ---- Respondent field ---- */
+  .who{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 18px;margin-bottom:20px;
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px
+  }
+  .who label{font-size:14px;font-weight:600;color:var(--ink)}
+  .who input{
+    flex:1;min-width:200px;font:inherit;font-size:15px;padding:9px 12px;
+    border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)
+  }
+  .who input:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--navy)}
+  .who .hint{font-size:12.5px;color:var(--faint);width:100%}
+
+  /* ---- Items ---- */
+  .item{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px 20px;margin-bottom:14px;
+    display:grid;grid-template-columns:1fr 340px;gap:18px 24px;align-items:center;
+    scroll-margin-top:84px;transition:border-color .2s,box-shadow .2s
+  }
+  .item.missing{border-color:var(--danger);box-shadow:0 0 0 3px rgba(178,58,72,.12)}
+  .item-q{display:flex;gap:12px;align-items:baseline;font-size:16px}
+  .qnum{
+    flex:none;font-family:"Fraunces",serif;font-weight:600;font-size:15px;
+    color:var(--navy);min-width:22px;font-variant-numeric:tabular-nums
+  }
+  fieldset.scale{border:0;margin:0;padding:0}
+  fieldset.scale legend{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .scale-anchors{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-bottom:5px;letter-spacing:.01em}
+  .segs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .seg{position:relative}
+  .seg input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .seg span{
+    display:flex;align-items:center;justify-content:center;height:40px;border-radius:9px;
+    border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:600;
+    font-size:15px;font-variant-numeric:tabular-nums;transition:all .12s ease;cursor:pointer
+  }
+  .seg input:hover+span{border-color:var(--navy);color:var(--navy)}
+  .seg input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+  .seg input:checked+span{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(44,74,134,.28)}
+
+  /* ---- Actions ---- */
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+  .btn{
+    font:inherit;font-weight:600;font-size:15px;border-radius:11px;padding:13px 22px;
+    border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:9px;
+    transition:transform .08s ease,background .15s,box-shadow .15s
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .btn-primary{background:var(--navy);color:#fff;box-shadow:0 4px 14px rgba(44,74,134,.28)}
+  .btn-primary:hover{background:var(--navy-deep)}
+  .btn-ghost{background:var(--surface);color:var(--ink);border-color:var(--line);box-shadow:var(--shadow)}
+  .btn-ghost:hover{border-color:var(--navy);color:var(--navy)}
+  .btn svg{width:17px;height:17px}
+  .form-msg{color:var(--danger);font-size:14px;font-weight:500;margin-top:14px;min-height:20px}
+
+  /* ---- Results ---- */
+  #results{display:none;margin-top:40px}
+  #results.show{display:block;animation:rise .5s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .res-head{border-top:3px solid var(--gold);padding-top:20px;margin-bottom:8px}
+  .res-head .eyebrow{color:var(--gold)}
+  .res-head h2{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(24px,4vw,34px);margin:0 0 6px}
+  .res-head p{color:var(--muted);margin:0;max-width:62ch;font-size:15px}
+  .res-who{color:var(--navy-deep);font-weight:600}
+
+  .panel{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:22px;margin-top:20px
+  }
+  .radar-wrap{display:flex;justify-content:center}
+  .radar-wrap svg{width:100%;max-width:560px;height:auto}
+  .axis-label{font-family:"IBM Plex Sans",sans-serif;font-size:12.5px;font-weight:600;fill:var(--ink)}
+  .axis-val{font-size:11px;font-weight:700;fill:var(--gold)}
+  .ring{fill:none;stroke:var(--line);stroke-width:1}
+  .spoke{stroke:var(--line);stroke-width:1}
+  .ring-num{font-size:9px;fill:var(--faint)}
+
+  table.scores{width:100%;border-collapse:collapse;margin-top:6px;font-size:14.5px}
+  table.scores th,table.scores td{padding:12px 12px;text-align:left;border-bottom:1px solid var(--line)}
+  table.scores thead th{
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+    font-weight:600;border-bottom:2px solid var(--line)
+  }
+  table.scores td.dim{font-weight:600}
+  table.scores td.alt{color:var(--faint);font-size:12.5px;font-weight:400}
+  table.scores td.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .barcell{min-width:120px}
+  .bar{height:8px;border-radius:99px;background:var(--navy-soft);overflow:hidden}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--navy),var(--gold))}
+  .scorebig{font-family:"Fraunces",serif;font-weight:600;color:var(--navy-deep)}
+
+  .defs{margin-top:4px}
+  .defs h3{font-family:"Fraunces",serif;font-size:18px;font-weight:600;margin:0 0 14px}
+  .def{display:grid;grid-template-columns:170px 1fr;gap:6px 18px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .def:last-child{border-bottom:0}
+  .def .dname{font-weight:600}
+  .def .dalt{color:var(--faint);font-size:12.5px;font-weight:400}
+  .def .dtext{color:var(--muted);font-size:14px}
+  .note{font-size:13px;color:var(--muted);background:var(--navy-soft);border-radius:10px;padding:12px 15px;margin-top:18px}
+
+  .downloads{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+
+  /* ---- Citation ---- */
+  footer.cite{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted)}
+  footer.cite .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:600;margin-bottom:8px}
+  footer.cite a{color:var(--navy);word-break:break-word}
+  .blank-link{background:none;border:0;padding:0;color:var(--navy);font:inherit;text-decoration:underline;cursor:pointer}
+
+  @media (max-width:640px){
+    .wrap{padding:24px 14px 80px}
+    .item{grid-template-columns:1fr;gap:14px}
+    .seg span{height:44px}
+    .def{grid-template-columns:1fr;gap:2px}
+    .def .dtext{margin-top:2px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Self-assessment &middot; French, West, Elander &amp; Wilding (1993)</p>
+    <h1>Decision Making Questionnaire</h1>
+    <p class="lede">Twenty-one questions about how you typically approach decisions. Your answers are scored across seven independent dimensions of decision-making style and shown as a profile. Nothing is sent anywhere &mdash; scoring happens in your browser.</p>
+    <div class="legend" aria-hidden="false">
+      <span><b>1</b>very infrequently / never</span>
+      <span><b>2</b>infrequently</span>
+      <span><b>3</b>quite infrequently</span>
+      <span><b>4</b>quite frequently</span>
+      <span><b>5</b>frequently</span>
+      <span><b>6</b>very frequently / always</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="prog" role="progressbar" aria-label="Questions answered" aria-valuemin="0" aria-valuemax="21" aria-valuenow="0"><i id="progBar"></i></div>
+    <span class="prog-label"><span id="answered">0</span>&nbsp;/&nbsp;21 answered</span>
+  </div>
+
+  <div class="who">
+    <label for="respondent">Name or reference</label>
+    <input id="respondent" type="text" placeholder="Optional &mdash; appears on your results and export" autocomplete="off">
+    <span class="hint">Optional. Useful if you are administering this to more than one person.</span>
+  </div>
+
+  <form id="dmqForm" novalidate>
+    <div id="items"></div>
+    <div class="actions">
+      <button type="submit" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>
+        Calculate my profile
+      </button>
+      <button type="button" class="btn btn-ghost" id="clearBtn">Clear answers</button>
+    </div>
+    <p class="form-msg" id="formMsg" role="alert"></p>
+  </form>
+
+  <section id="results" aria-live="polite">
+    <div class="res-head">
+      <p class="eyebrow">Your profile</p>
+      <h2>Decision-making style</h2>
+      <p id="resIntro">Each axis shows your average response on that dimension, from 1 (low) to 6 (high). The dimensions are independent, so a profile that is high on some and low on others is entirely normal.</p>
+    </div>
+
+    <div class="panel radar-wrap"><div id="radar"></div></div>
+
+    <div class="panel">
+      <table class="scores">
+        <thead>
+          <tr><th>Dimension</th><th class="barcell">Profile (1&ndash;6)</th><th class="num">Mean</th><th class="num">Score</th><th class="num">Range</th></tr>
+        </thead>
+        <tbody id="scoreRows"></tbody>
+      </table>
+      <p class="note" id="researchNote"></p>
+    </div>
+
+    <div class="panel defs">
+      <h3>What the dimensions mean</h3>
+      <div id="defList"></div>
+    </div>
+
+    <div class="downloads">
+      <button type="button" class="btn btn-primary" id="xlsxBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        Download results (Excel)
+      </button>
+      <button type="button" class="btn btn-ghost" id="wordBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13l1.5 4 1.5-3 1.5 3 1.5-4"/></svg>
+        Blank questionnaire (Word)
+      </button>
+      <button type="button" class="btn btn-ghost" id="restartBtn">Start again</button>
+    </div>
+  </section>
+
+  <footer class="cite">
+    <div class="lbl">Source</div>
+    <p style="margin:0 0 6px">French, D. J., West, R. J., Elander, J., &amp; Wilding, J. M. (1993). Decision-making style, driving style, and self-reported involvement in road traffic accidents. <em>Ergonomics, 36</em>(6), 627&ndash;644.</p>
+    <p style="margin:0"><a href="https://www.tandfonline.com/doi/abs/10.1080/00140139308967925" target="_blank" rel="noopener">https://www.tandfonline.com/doi/abs/10.1080/00140139308967925</a></p>
+    <p style="margin:12px 0 0">You can also <button type="button" class="blank-link" id="wordBtn2">download a blank Word copy of the questionnaire</button> to administer offline.</p>
+  </footer>
+
+</div>
+
+<script>
+/* ---------------- Instrument definition ---------------- */
+const ANCHORS = {low:"never", high:"always"};
+const ITEMS = [
+  {n:1,  text:"Do you enjoy making decisions?", rev:false},
+  {n:2,  text:"Do you rely on \u2018gut feelings\u2019 when making decisions?", rev:false},
+  {n:3,  text:"Do you like to consult with others?", rev:true},
+  {n:4,  text:"Do you stick by your decisions come what may?", rev:false},
+  {n:5,  text:"When you find one option that will just about do, do you leave it at that?", rev:true},
+  {n:6,  text:"Do you remain calm when you have to make decisions very quickly?", rev:false},
+  {n:7,  text:"Do you feel in control of things?", rev:false},
+  {n:8,  text:"How often are your decisions governed by your ideals regardless of practical difficulties?", rev:false},
+  {n:9,  text:"Do you make decisions without considering all of the implications?", rev:true},
+  {n:10, text:"Do you change your mind about things?", rev:false},
+  {n:11, text:"Do you take the safe option if there is one?", rev:false},
+  {n:12, text:"Do you prefer to avoid making decisions if you can?", rev:true},
+  {n:13, text:"Do you plan well ahead?", rev:false},
+  {n:14, text:"When making decisions do you find yourself favouring first one option then another?", rev:false},
+  {n:15, text:"Do you carry on looking for something better even if you have found a course of action that is just about OK?", rev:false},
+  {n:16, text:"Do you find it difficult to think clearly when you have to decide something in a hurry?", rev:true},
+  {n:17, text:"Do you make up your own mind about things regardless of what others think?", rev:false},
+  {n:18, text:"Do you avoid taking advice over decisions?", rev:false},
+  {n:19, text:"Do you work out all the pros and cons before making a decision?", rev:false},
+  {n:20, text:"In your decision making how often are practicalities more important than principles?", rev:true},
+  {n:21, text:"Is your decision making a deliberate logical process?", rev:false}
+];
+
+const DIMENSIONS = [
+  {key:"thoroughness",   name:"Thoroughness",      alt:null,           items:[9,13,19,21],
+   desc:"Weighing options carefully \u2014 planning ahead, working through the pros and cons, and deciding in a deliberate, logical way."},
+  {key:"control",        name:"Control",           alt:null,           items:[1,6,7,12,16],
+   desc:"Feeling calm, confident and in command when decisions must be made, including under time pressure, rather than avoiding them."},
+  {key:"instinctiveness",name:"Instinctiveness",   alt:null,           items:[2,4],
+   desc:"Relying on gut feeling and staying committed to a decision once it has been made."},
+  {key:"social",         name:"Social resistance", alt:null,           items:[3,17,18],
+   desc:"Deciding independently \u2014 making up your own mind and relying less on consulting others or taking advice."},
+  {key:"hesitancy",      name:"Hesitancy",         alt:null,           items:[10,11,14],
+   desc:"A tendency to waver \u2014 changing your mind, favouring first one option then another, and leaning towards the safe choice."},
+  {key:"optimising",     name:"Optimising",        alt:"perfectionism",items:[5,15],
+   desc:"Searching for the best available option rather than settling for one that is merely good enough (maximising rather than satisficing)."},
+  {key:"principled",     name:"Principled",        alt:"idealism",     items:[8,20],
+   desc:"Letting ideals and principles guide decisions, even when that runs against practical considerations."}
+];
+
+/* ---------------- Build the form ---------------- */
+const itemsEl = document.getElementById("items");
+ITEMS.forEach(it=>{
+  const row = document.createElement("div");
+  row.className = "item"; row.id = "item-"+it.n;
+  const segs = [1,2,3,4,5,6].map(v=>
+    `<label class="seg"><input type="radio" name="q${it.n}" value="${v}" aria-label="${v}"><span>${v}</span></label>`
+  ).join("");
+  row.innerHTML =
+    `<div class="item-q"><span class="qnum">${it.n}</span><span>${it.text}</span></div>
+     <fieldset class="scale">
+       <legend>${it.n}. ${it.text}</legend>
+       <div class="scale-anchors"><span>${ANCHORS.low}</span><span>${ANCHORS.high}</span></div>
+       <div class="segs">${segs}</div>
+     </fieldset>`;
+  itemsEl.appendChild(row);
+});
+
+/* ---------------- Progress ---------------- */
+const form = document.getElementById("dmqForm");
+const progBar = document.getElementById("progBar");
+const answeredEl = document.getElementById("answered");
+const progRole = document.querySelector('.prog');
+function countAnswered(){
+  let c=0; ITEMS.forEach(it=>{ if(form.querySelector(`input[name=q${it.n}]:checked`)) c++; });
+  return c;
+}
+function updateProgress(){
+  const c = countAnswered();
+  answeredEl.textContent = c;
+  progBar.style.width = (c/21*100)+"%";
+  progRole.setAttribute("aria-valuenow", c);
+}
+form.addEventListener("change", e=>{
+  updateProgress();
+  const item = e.target.closest(".item");
+  if(item) item.classList.remove("missing");
+});
+
+/* ---------------- Scoring ---------------- */
+function scoredValue(it, raw){ return it.rev ? (7 - raw) : raw; }
+function collect(){
+  const raw = {}, scored = {};
+  ITEMS.forEach(it=>{
+    const el = form.querySelector(`input[name=q${it.n}]:checked`);
+    if(el){ const r = +el.value; raw[it.n] = r; scored[it.n] = scoredValue(it, r); }
+  });
+  return {raw, scored};
+}
+function computeDimensions(scored){
+  return DIMENSIONS.map(d=>{
+    const sum = d.items.reduce((a,n)=>a+scored[n],0);
+    const k = d.items.length;
+    return {...d, sum, k, mean:+(sum/k).toFixed(2), min:k, max:k*6};
+  });
+}
+
+/* ---------------- Radar (SVG) ---------------- */
+function buildRadar(dims){
+  const W=560, H=470, cx=W/2, cy=H/2+6, R=150;
+  const N=dims.length, step=(Math.PI*2)/N, start=-Math.PI/2;
+  const pt=(i, r)=>({x:cx+r*Math.cos(start+i*step), y:cy+r*Math.sin(start+i*step)});
+  const rFor=v=>((v-1)/5)*R; // value 1..6 -> 0..R
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Radar chart of the seven decision-making dimensions">`;
+
+  // rings for values 2..6
+  for(let v=2; v<=6; v++){
+    const pts = dims.map((_,i)=>{const p=pt(i, rFor(v)); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;}).join(" ");
+    svg += `<polygon class="ring" points="${pts}"/>`;
+    const lp = pt(0, rFor(v));
+    svg += `<text class="ring-num" x="${cx+3}" y="${(lp.y-2).toFixed(1)}">${v}</text>`;
+  }
+  // spokes + labels
+  dims.forEach((d,i)=>{
+    const edge = pt(i, R);
+    svg += `<line class="spoke" x1="${cx}" y1="${cy}" x2="${edge.x.toFixed(1)}" y2="${edge.y.toFixed(1)}"/>`;
+    const lab = pt(i, R+30);
+    let anchor = "middle";
+    if(lab.x > cx+8) anchor="start"; else if(lab.x < cx-8) anchor="end";
+    const dy = lab.y < cy-8 ? -2 : (lab.y > cy+8 ? 12 : 4);
+    svg += `<text class="axis-label" x="${lab.x.toFixed(1)}" y="${(lab.y+dy).toFixed(1)}" text-anchor="${anchor}">${d.name}</text>`;
+    const vlab = pt(i, R+30);
+    svg += `<text class="axis-val" x="${vlab.x.toFixed(1)}" y="${(vlab.y+dy+14).toFixed(1)}" text-anchor="${anchor}">${d.mean.toFixed(1)}</text>`;
+  });
+  // data polygon
+  const dpts = dims.map((d,i)=>{const p=pt(i, rFor(d.mean)); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;}).join(" ");
+  svg += `<polygon points="${dpts}" fill="rgba(185,138,46,.22)" stroke="var(--gold)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  dims.forEach((d,i)=>{const p=pt(i, rFor(d.mean)); svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="var(--gold)" stroke="#fff" stroke-width="1.5"/>`;});
+  svg += `</svg>`;
+  return svg;
+}
+
+/* ---------------- Render results ---------------- */
+let LAST = null;
+function render(){
+  const {raw, scored} = collect();
+  const dims = computeDimensions(scored);
+  LAST = {raw, scored, dims, respondent:document.getElementById("respondent").value.trim(), when:new Date()};
+
+  // header
+  const who = LAST.respondent;
+  document.getElementById("resIntro").innerHTML =
+    (who ? `<span class="res-who">${escapeHtml(who)}</span> &mdash; ` : "") +
+    "each axis shows your average response on that dimension, from 1 (low) to 6 (high). The dimensions are independent, so being high on some and low on others is entirely normal.";
+
+  // radar
+  document.getElementById("radar").innerHTML = buildRadar(dims);
+
+  // table
+  const rows = dims.map(d=>{
+    const pct = ((d.mean-1)/5*100).toFixed(0);
+    return `<tr>
+      <td class="dim">${d.name}${d.alt?`<div class="alt">also called \u2018${d.alt}\u2019</div>`:""}</td>
+      <td class="barcell"><div class="bar"><i style="width:${pct}%"></i></div></td>
+      <td class="num scorebig">${d.mean.toFixed(2)}</td>
+      <td class="num">${d.sum}</td>
+      <td class="num">${d.min}\u2013${d.max}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("scoreRows").innerHTML = rows;
+
+  // definitions
+  document.getElementById("defList").innerHTML = dims.map(d=>
+    `<div class="def">
+       <div><span class="dname">${d.name}</span>${d.alt?`<div class="dalt">\u2018${d.alt}\u2019 in the original paper</div>`:""}</div>
+       <div class="dtext">${d.desc}</div>
+     </div>`).join("");
+
+  document.getElementById("researchNote").innerHTML =
+    "These are descriptions of <em>style</em>, not ability, and there are no right or wrong profiles. In the original study, higher thoroughness (and, in older drivers, lower hesitancy) was associated with lower self-reported accident involvement.";
+
+  const results = document.getElementById("results");
+  results.classList.add("show");
+  results.scrollIntoView({behavior:"smooth", block:"start"});
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+/* ---------------- Submit / validate ---------------- */
+form.addEventListener("submit", e=>{
+  e.preventDefault();
+  const missing = ITEMS.filter(it=>!form.querySelector(`input[name=q${it.n}]:checked`));
+  const msg = document.getElementById("formMsg");
+  document.querySelectorAll(".item.missing").forEach(el=>el.classList.remove("missing"));
+  if(missing.length){
+    missing.forEach(it=>document.getElementById("item-"+it.n).classList.add("missing"));
+    msg.textContent = `Please answer all questions \u2014 ${missing.length} still to go (question ${missing[0].n} is the next one).`;
+    document.getElementById("item-"+missing[0].n).scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+  msg.textContent = "";
+  render();
+});
+
+/* ---------------- Clear / restart ---------------- */
+function clearAll(){
+  form.reset();
+  document.querySelectorAll(".item.missing").forEach(el=>el.classList.remove("missing"));
+  document.getElementById("formMsg").textContent="";
+  updateProgress();
+}
+document.getElementById("clearBtn").addEventListener("click", clearAll);
+document.getElementById("restartBtn").addEventListener("click", ()=>{
+  document.getElementById("results").classList.remove("show");
+  clearAll();
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+/* ---------------- Excel export ---------------- */
+function fileStamp(){
+  const d = LAST ? LAST.when : new Date();
+  return d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+}
+function safeName(s){return (s||"").replace(/[^a-z0-9\-_]+/gi,"-").replace(/^-+|-+$/g,"").slice(0,40);}
+
+document.getElementById("xlsxBtn").addEventListener("click", ()=>{
+  if(!LAST) return;
+  const {raw, scored, dims, respondent, when} = LAST;
+
+  const meta = [
+    ["Decision Making Questionnaire \u2013 results"],
+    ["Respondent", respondent || "(not given)"],
+    ["Completed", when.toLocaleString("en-GB")],
+    ["Source", "French, West, Elander & Wilding (1993), Ergonomics 36(6), 627\u2013644"],
+    []
+  ];
+
+  // Responses sheet
+  const respHead = ["Item","Statement","Response (1\u20136)","Reverse-scored","Scored value"];
+  const respRows = ITEMS.map(it=>[it.n, it.text, raw[it.n], it.rev?"Yes":"No", scored[it.n]]);
+  const wsResp = XLSX.utils.aoa_to_sheet([...meta, respHead, ...respRows]);
+  wsResp["!cols"] = [{wch:6},{wch:78},{wch:14},{wch:15},{wch:13}];
+
+  // Dimensions sheet
+  const dimHead = ["Dimension","Alternative label","Items","Score (sum)","Possible range","Mean per item (1\u20136)"];
+  const dimRows = dims.map(d=>[d.name, d.alt||"", d.items.join(", "), d.sum, d.min+"\u2013"+d.max, d.mean]);
+  const wsDim = XLSX.utils.aoa_to_sheet([...meta, dimHead, ...dimRows]);
+  wsDim["!cols"] = [{wch:18},{wch:18},{wch:16},{wch:12},{wch:15},{wch:20}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, wsDim, "Dimension scores");
+  XLSX.utils.book_append_sheet(wb, wsResp, "Responses");
+
+  const tag = safeName(respondent) || "DMQ";
+  XLSX.writeFile(wb, `DMQ-results-${tag}-${fileStamp()}.xlsx`);
+});
+
+/* ---------------- Blank Word download ---------------- */
+const DOCX_B64 = "UEsDBAoAAAAAAOpz4lwAAAAAAAAAAAAAAAAFAAAAd29yZC9QSwMECgAAAAAA6nPiXAAAAAAAAAAAAAAAAAsAAAB3b3JkL19yZWxzL1BLAwQKAAAACADqc+JcZ/TLE08BAAAABQAAHAAAAHdvcmQvX3JlbHMvZG9jdW1lbnQueG1sLnJlbHOtlMtuwjAQRX8l8p7YCa9QEdi0lVh0U9EPcOLJAxI72AMJf1+jEggVjbrI0tf2mePRyMt1UxbOCbTJlQyJ5zLigIyVyGUakq/t+ygg69XyEwqO9oTJ8so49oo0IckQqxdKTZxByY2rKpB2J1G65GiXOqUVj/c8BeozNqO6yyCPTGcjQqI3wiPO9lzBf9gqSfIYXlV8LEHikxLU4LkAY4lcp4Ah+Vm7lkPo8/L+kOXlsYxA2z7eDW5Rn8R4SIlEKZQKu224RX0SkyElQIpfDm3SpzAddBYA0fa9Ow3XpE9hNqRCrMrLVkehTfoUcDeP9oemjnaNETsYnaLgUA2plVmSLnK5v3tdsMZy67p2kUuRKGkPgGt9qVA55ZGhHnM9FjDKmDdh3ngxZsFiNl/40xbzoYQ1fGsQtOR/Pi8YdtglbnlUQHfYr1HbY/rwla2+AVBLAwQKAAAACADqc+JctnBPWrwMAACFsAEAEQAAAHdvcmQvZG9jdW1lbnQueG1s7Z3bcts2HodfBaOLTjvjiDpZlt06nTaJm+xOd7ubbnMNkaAIGyQYAJKiXu077BvukywAijonluwdui5+mjEknv4EwI+w/BkEvvv+Uy7IjCnNZXHd6rY7LcKKWCa8mFy3/vXrzYtRi2hDi4QKWbDr1oLp1vcvv5tfJTKe5qwwJI+v3k0KqehY2O3z7oDMu+dkXnYHLWKDF/pqXsbXrcyY8iqKdJyxnOp2zmMltUxNO5Z5JNOUxyyaS5VEvU634z+VSsZMa5uTV7SYUV2Hy/ejyZIVdmMqVU6NXVSTKKfqblq+sNFLaviYC24WNnZnWIeR162pKq6WIV6sMuQOuaoytHyrj1DHnLc65PWydvwZI8WEzYMsdMbLdTEeGs1uzOogsy8VYpaL9SXoDh53DV4rOrdv64DHZD+pDspFlfMvR+x2jrgiLsTqiGOysH3OOic55cX6xA+qmo3K7Z6fFqC3G6CcPO7i/KTktFxH44+L9q64W8Vy9/wJsZYXebNo+nGZeZ/RcnUHxp+OC7bkzsUbRHFGlWGf1jG6Jwc5jy6j0X6g3gMC2QL2uvuh+ieHGkYuV3uBjmR5J5DN1V6kI6HejXSgcMOHRertR7p4WKT+fqTRwyLt4WQbkrsHhOLre4zm/eTkCBdRLhMm+uvGsDuM2ZG3R32vjZY3axSvy+Pi8CPzU8cZruLwzfw8LDMbAXRikuykKL26bY7csdTQjOpsM+JpzZm9X+twi9zWkfviM5bJwr2XPvlFuTdd0theGDK/oqlh9ntCt9dpRS+/i1Z7VEn1eRz59JX277EUUtkjZ1TY4276P5zftPwG/Xu9tt+r17zS2+uiVVDjCukzYotYKqaZmrHWy9cs5u67HfmZ3rkc/mPKtPsqUlCumDvcVEGqvN5bruEXisV9HvmyWOvcV1WxnftV9Xw5978IRjUjOpNz4n7sVWIFYTTO7EdiMkZSKYR0NwWhZSk408RIspBTMl6QmKtYuE1ux2Kaj5myH6nx201mb8H6oPbpNWF/1x1bFVtX+Ny/dq9wd7RfR9W6e+uoS67dF/gF4UWq2Mep/Z4oFsSesGB2NSGkZ3fY2kZI3676OOWG7W4YrDZsrT63q7dWDOuTbp+Sijld6IOVacZi+bYszVh8sCU1i9KWJvlEW3bBfqG77A+XuNgdfrT3nv3TxC/Jsq4X961AMLe/r9jrFp0a6Rb179etQXWwYKk5Zf+xNEbmpxyh+CQ76RS80Dxhb08/5LfjD4m2qy3aru+fFE/cx4l9fyVFVeHnF3WFb60edp5gbbSVTVPlW63y/5ZRW67lfvXquErrpUNMrYto4iOR+tG/ToHq4BH3YHXwmC+DdeCQaKdcOkvs5pSL9e+TfWR89Ng2r6qumZ+pWtfKbhXWFbisgt3No85OeT93fF24wwGijXzMfhB8UqxyapsYplb7VFd7s32+jetdXRYf9Lv3xr/2WubhgZZ5eFTL/N5Qw9zf7QcaxGiN7v0Ar24a8Pvn53dr1ycm+Le97xVR9bUCRIPoZ0k0wAW4ABfgAlyAC3ABLsAFuH82cH/bEbPR573sEmgv1HxESLX78X7z5qZ3c/F4vAePxHtwIt67EG/yiRYzBKQGj0Vq8IdoMQ//l/Qx/0MDuSD3WZLbA7kg91mS2we5IPdZkjsAuSD3WZJ7DnJB7rMkdwh59XCOn61mfTIf0CZkC7jPyrKHn+N11U+ZFbdyQfKqd3ay7K2tv0dD3Rzg97a59wHeYJu7xf2lf8GDAbvnjR0kFrB7AuxgoIDdE2AHfQTsngA7uB9g9wTYQdxA3Pi0mX+HNyduFHPPPBfkK1pK/e1kakjKmHvcXFdryDxjBcQOWuE/QisMsQPsIHaAXRjYQewAO4gdYBcGdhA7wA5iJyQIAxQ7/ebEjuB3zI0iGMtCT4WtPm4yIk1mLx3sDZpa2BtgFwZ2sDfADvYG2IWBHewNsIO9AXZhYAd7A3vj02aemG7O3mjD4zs3+4NdUOt+NySWOSNzN/tDThfwOGh04XGAXRjYweMAO3gcYBcGdvA4wA4eB9iFgR08DjyOT5sZP6wBj/PBPTblTE7Ki4TIghFZuhlLq6k751wIcjvVhtCxnBqSyDP7U/XbYXTGCLdbjN8XkgctMiQPsAsDO0geYAfJA+zCwA6SB9hB8gC7MLCD5IHk8WkzQ203OYZOTnlBYiryargctzJzGsdIN3QO2+jAM3Oz2n2c8vhOoP8O2mGoHWAXCHZQO8AOagfYhYEd1A6wg9oBdmFgB7UDtePTRtTORXNqxw2GTJzbkYVRUhCZEpPZa4wxdNDQwt0Au0Cwg7sBdnA3wC4M7OBugB3cDbALAzu4G7gbnzbibkYNuJu3ck5kalhBqGK7I+hM5IypgiWrwXV4wqjQRLEJVYlgWjvJUyoaGx5TQRKepjyeCsMZpA9aaEgfYBcIdpA+wA7SB9iFgR2kD7CD9AF2YWAH6QPp49NGpM9lcx12dh63crNeuQF23CxY3F4/e7UJFct+PIzwvBQ8pgZzmqMlhtwBduFgB7kD7CB3gF0Y2EHuADvIHWAXBnaQO5A7Pm1E7nQ7zdmdOKPFZNmlJ3cDK1fDJ+ORLLS2EDjALiTsIHCAHQQOsAsDOwgcYAeBA+zCwA4CBwLHp80InG5zAse47jmu542m6WpKLO474yhGuHYzZcHjoNGFxwF2YWAHjwPs4HGAXRjYweMAO3gcYBcGdvA48Dg+bcbj9JrzOHZFypSb34rOJE/cY1fu0ar1g1c8rTrs0AI6B20vdA6wCwM76BxgB50D7MLADjoH2EHnALswsIPOgc7xaTM6p9+gzhHU1gQTgtCM0QTKBu0rlA2wCwM7KBtgB2UD7MLADsoG2EHZALswsIOygbLxaTPKZtCAsvmQsWK/v02ynK/cDYrjhsfRTKQkpTP70e2YcqWNe7iqfubKuCi0kO7BK+getM3QPcAuDOyge4AddA+wCwM76B5gB90D7MLADroHusenzeie8wZHPqZKLYgsiJDSq5/UFkzLnPmxj8mYGVs5hM1YUT96ldEZs3tN3SjJJPZKyE175eY19/6HGjfezu1Um+Uoyn//K0QQWm2IIGAXBnYQQcAOIgjYhYEdRBCwgwgCdmFgBxEEEeTTZkTQsDkR5Hv4cEMSnqY8ngrjBuFxEuiOxIJRJRZk7vr2rBSQ3ey6CSVsQxfxglCSTZVaQPmgfYbyAXZhYAflA+ygfIBdGNhB+QA7KB9gFwZ2UD5QPj5tRvlcNKd8cjdp1rSspj2X82J/6nOi2ISqRDCtXR+fuevc4x/t0pUaguVBkwzLA+zCwA6WB9jB8gC7MLCD5QF2sDzALgzsYHlgeXzajOUZNWd5qom0TDWwD01mPGZEzphaD/IDi4MmFxYH2IWBHSwOsIPFAXZhYAeLA+xgcYBdGNjB4sDi+LQZi3PZnMWZS3VHXMccKoQbZJmUSmpCi4TEbpjmMUulYvXwzXTldqB20A5D7QC7MLCD2gF2UDvALgzsoHaAHdQOsAsDO6gdqB2fNqJ2ep0G1M67onr0qpY1tb7J5JzI1LiJtJQTPW5o5ZgKbjjTJHeeh+elVIYW7jktWthdeBHzUjB05UHjDN8D7ALBDr4H2MH3ALswsIPvAXbwPcAuDOzge+B7fNqM7+k24Xv0Yd/juusIPmaKGkaEnDjZ4/r3xExD6KD1hdABdoFgB6ED7CB0gF0Y2EHoADsIHWAXBnb3Cx33Nha7+XeB3F/J8yua2uzb8w07ny/DRlZ7B7LaOyqrB3K6nafyx0Tdx/wr/1qjReb1ier6qqPsldAW0C5Uz/S4TH+hvE1KkvdyqmJ2b+XsFWdw3PV6eMZuFCvi7Iy8bpO/tM/IB6bNGflntfBG0MLeymd+4Sual9+SD1wkNoNuFfm5Tb7uXl72v2mT10st82KpZbRZCHZGEsVnG4vukSvNRPpCMdcHhyWEFzMpZiy3d5ebAEtJmhCjqJtGi9DYzZBVGN0mb9REFjLnsT4j/eHXw2/OyLB38d9//2c4GLQ/X6mZbQ+UcNNw2c9cG6kWtl5aRF3x5Lql3iXm9mJ89/HTfHz7SSe37MVsPPpYtnbrWb132a/r9W0d9P9IR2ZMqa+iaD6ft42tpVQW9gysHcs8SiSP6FhH3U672xl1ok6nO+h0+5f9zuhyeHHZ2/uVtCr1ujY0i83y7pu8/71qHLvdy87Q3SuZaxZG/ZH7LBW3NW6zZi+PotxUJSontvkk/pa1+9pMuF19o7terBrp9bJr09dLGaOJw/mi40+TSmk2FidT4xc79en+Ns1/taXwS4mMf1I8cSFtlfzCTWwz3F+1Y3XRIpeFZOE/2EOmDqmX/wNQSwMECgAAAAgA6nPiXLTnJbLjAgAAoxAAAA8AAAB3b3JkL3N0eWxlcy54bWzlVltP2zAY/StR3iGXpgUqCtoKFUjThhhoz67jNBaOndkOpfz62YmdlqahhQYmbW/9Ljk+57vUPj1/yojziLjAjI7c4NB3HUQhizGdjdz7u8nBsesICWgMCKNo5C6QcM/PTudDIRcECSeDw+sZZRxMiYrOg8iZB33XUahUDDM4clMp86HnCZiiDIhDliOqggnjGZDK5DMvA/yhyA8gy3Ig8RQTLBde6PsDC8N3QWFJgiG6YLDIEJXl9x5HRCEyKlKcC4s23wVtzniccwaREKoSGanwMoBpDRNEDaAMQ84ES+ShEmMYlVDq88Avf2VkCdB/G0BoAXT5YwYvUAIKIoU2+Q03pqfNfNX0Gtll75z5UC5y1bQccDDjIE9dx4Su45F7hyVB5VEUZDr5ERDrLc+YAoHiH9RGvuvqkSpE0ZPc5P89KUvsGcYllWeb2B9USeJ5LF76PJPtGXq7SrhCQM9x0FBhAk7QpRLICOM2N7w8ir72rSDr7YVNiZVvT4lhq8TwkyWGG7oYdtHFXqvE3odJDCbRxdFxQ2K0QWLUgcSoVWLUpURcGngsvFd6uqeUfquU/icM5J7kB63kB58wau8l/1NyRmcN6sbdIe9phVXOz3vJfsNC3tSRdc466izD27gvObbTgKmCgxLxlw1XMU4wfWh2vI5sOt1cpjXFCaOySizwDceMqyeMzT05MRGa4hj9ShG9V1itg+D3B72xuZgK69SPkOre3V7wzUonjEnKJLpFCeLqhde82hOT4fA6pSvpAmX4CscxolsqoR6i8gvBs/o0Uag2CMhxLvfZDav+Tk15u3Cpo9uGTc+E9a/CjlXZ969Dbl5FOYD6/2Y+BInqpJoKLUcdjfRVUxu3hX50g0IyUxzzeeNtFfobriy/i3mqpa9X1SY4OsNZVmfncWordGfD9pHluaTx69uGqoR/cdmM9o27ZmW/edVWQP+zTVtXvl5SE+9kz1Zb93fXzP4SZ38AUEsDBAoAAAAAAOpz4lwAAAAAAAAAAAAAAAAJAAAAZG9jUHJvcHMvUEsDBAoAAAAIAOpz4lwm0zgUYgEAAMcCAAARAAAAZG9jUHJvcHMvY29yZS54bWylklFvgjAQx79K03co4OIMAUzU+DSTLdNs2VvTntBIW9JW0W+/gsJm5tseL/e7X67/azY/yxqdwFihVY7jMMIIFNNcqDLHu+06mGFkHVWc1lpBji9g8bzIWJMybeDV6AaME2CR9yibsibHlXNNSohlFUhqQ08o39xrI6nzpSlJQ9mBlkCSKJoSCY5y6ijphEEzGvFNydmobI6m7gWcEahBgnKWxGFMflgHRtqHA33nFymFuzTwEB2aI322YgTbtg3bSY/6/WPyuXl5758aCNUlxQAXGWepE66GYgVMdNmiDT34TNHbEazztaLCQEZGrptgBqjTptipWrOeXkBFT0IfDVpWVJXXgQHrjlBT6zb+WnsBfHHxk4GiEnhG/vY63MCp36aIe2Iss1twVzdw5B+cXuMZOh+T5Wq7xkUSJdMgeg6iZBs/pZM4TaIwmc6+utXuHD9SeVviX9ZBUvSb33++4htQSwMECgAAAAgA6nPiXB4p6VpwAgAAZAwAABIAAAB3b3JkL251bWJlcmluZy54bWzNl0tu2zAQhq8icO9QcuQHhChB2yCFi76ApgegJdomwhdISorP0EV37bZn60k6lCz5USCwZQTwxrQ4M9/8FDlD6ObuWfCgpMYyJVMUXYUooDJTOZPLFH1/fBhMUWAdkTnhStIUralFd7c3VSILMacG3AKRJbOlVIbMOThUURxU0SiodBSjAOjSJpXOUrRyTicY22xFBbFXgmVGWbVwV5kSWC0WLKO4UibHwzAK63/aqIxaCzneEVkS2+LE/zSlqQTjQhlBHDyaJRbEPBV6AHRNHJszztwa2OG4xagUFUYmG8SgE+RDkkbQZmgjzDF5m5B7lRWCSldnxIZy0KCkXTG9XUZfGhhXLaR8aRGl4NstiOLz9uDekAqGLfAY+XkTJHij/GViFB6xIx7RRRwjYT9nq0QQJreJe72anZcbjU4DDA8Benne5rw3qtBbGjuPNpNPHcsX/QmszSbvLs2eJ+bbimiKfMshc+sMydznQgR7T7McWhfybScxFLqV8ZNNd3qzcNS8NZQ8pSisKaLgjn2kJeWPa00BVBIOCtdzw/JP3sa9DWHvy0sODgwGH10ncFCGUMsl9Sm9T52vxURNHDTHB9FNzgvOqeuIj/S5M/39/bOb/5C1s5wuNu76q/EDkznY/HSKJkOvJFkRuayb9PU49L5444xr1qH46HXE/zhVfBTHPdQPX0X9rz+nqh9G4x7qry/k4Ayn0x7q4ws5OSC2h/rRhZyc+LpP1Y4v5OSMwj5VO7kU9ZM+VTu9EPXj+LiqxXs34kZVUP821+PBDTrLDxYBlC/wIQC3IN2587ol79i2UXgvrH6WPjne+T64/QdQSwMECgAAAAAA6nPiXAAAAAAAAAAAAAAAAAYAAABfcmVscy9QSwMECgAAAAgA6nPiXB+jkpbmAAAAzgIAAAsAAABfcmVscy8ucmVsc62Sz0oDMRCHXyXMvTvbVkSkaS9S6E2kPkBIZneDzR8mU61vbyiKVuraQ4+Z/ObLN0MWq0PYqVfi4lPUMG1aUBRtcj72Gp6368kdrJaLJ9oZqYky+FxUbYlFwyCS7xGLHSiY0qRMsd50iYOReuQes7Evpiecte0t8k8GnDLVxmngjZuC2r5nuoSdus5bekh2HyjKmSd+JSrZcE+i4S2xQ/dZbioW8LzN7HKbvyfFQGKcEYM2MU0y124WT+VbqLo81nI5JsaE5tdcDx2EoiM3rmRyHjO6uaaR3RdJ4Z8VHTNfSnjyMZcfUEsDBAoAAAAIAOpz4lygjo6lmgEAADgIAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbLVWy07DMBD8lShX1LhwQAi15cDjCBzgA1x7kxpir2VvCvw96/QhBZpSoLllPTM7E+9GyuTq3dbZEkI06Kb5aTHOM3AKtXHVNH9+uhtd5FezydOHh5gx1cVpviDyl0JEtQArY4EeHCMlBiuJy1AJL9WrrECcjcfnQqEjcDSi1COfTW6glE1N2fXqPLWe5sYmvndVnt2+8/EqTqrFXsWLh66kPfi15ifJ3PqOItX7FZUpO4pU71fEZXXC99hR8VmvSnpfGyWJiWLp9Jc5jNYzKALULScujI/fDBiNBzl8Fab6j8mwLI0CjaqxLClwXjaR2aDvuEnHBDVRe20PvKHBaPiPzxsG7QMqiJGX29bFFrHSuNXNPMpA99Jyb5HoYktZv+4gOSJ91BB3B1hh/7LfLILCACM29hDI7PDjgI+MRpGIx3xh1URCe5h1Sz2mOaRt0qAPsufWg07aNXYOgZ93D3sLDxqiRCSH1LdxW3jQEDyTPRk26LCfHRDxU9+Ht0YHjaDQJqAnwgYdeBu4kZzX0LcNa3gTQrS/ArNPUEsDBAoAAAAIAOpz4lxYedsikgAAAOQAAAATAAAAZG9jUHJvcHMvY3VzdG9tLnhtbJ3OQQrCMBCF4auU2dtUFyKlaTfi2kV1H9JpG2hmQiYt9vZGBA/g8vHDx2u6l1+KDaM4Jg3HsoICyfLgaNLw6G+HCxSSDA1mYUINOwp0bXOPHDAmh1JkgETDnFKolRI7ozdS5ky5jBy9SXnGSfE4OotXtqtHSupUVWdlV0nsD+HHwdert/QvObD9vJNnv4fsqfYNUEsDBAoAAAAIAOpz4lzi/J3akwAAAOYAAAAQAAAAZG9jUHJvcHMvYXBwLnhtbJ3OQQrCMBCF4auE7G2qC5HStBtx7aK6D8m0DTQzIRNLe3sjggdw+fjh47X9FhaxQmJPqOWxqqUAtOQ8Tlo+htvhIgVng84shKDlDiz7rr0nipCyBxYFQNZyzjk2SrGdIRiuSsZSRkrB5DLTpGgcvYUr2VcAzOpU12cFWwZ04A7xB8qv2Kz5X9SR/fzj57DH4qnuDVBLAwQKAAAACADqc+JcnInJkc4BAACtBgAAEgAAAHdvcmQvZm9vdG5vdGVzLnhtbNWUzU7jMBDHXyXyvXVSAVpFTTmAQNwQ3X0A4ziNhe2xbCehb7+TxE26LKoKPXGJv2Z+85+Z2Ovbd62SVjgvwRQkW6YkEYZDKc2uIH9+Pyx+kcQHZkqmwIiC7IUnt5t1l1cAwUAQPkGC8XlneUHqEGxOqee10MwvteQOPFRhyUFTqCrJBe3AlXSVZukwsw648B7D3THTMk8iTv9PAysMHlbgNAu4dDuqmXtr7ALplgX5KpUMe2SnNwcMFKRxJo+IxSSod8lHQXE4eLhz4o4u98AbLUwYIlInFGoA42tp5zS+S8PD+gBpTyXRakWmFmRXl/Xg3rEOhxl4jvxydNJqVH6amKVndKRHTB7nSPg35kGJZtLMgb9VmqPiZtdfA6w+AuzusuY8OmjsTJOX0Z7M28TqL/YXWLHJx6n5y8Rsa2bxBmqeP+0MOPaqUBG2LMGqJ/1vTY6fnKTLw96ihReWORbAEdySZUEW2WBoh8+z6wdvGccIaMCqIPB2p72xkn3Oq6tp8dL0IVkTgNDNmk7u4yfOt2Gv+ugtUwV5iGpeRCUcvpkiOkbjaj6O+xNukj0d0EEznb0+TZeDCdI0wyuz/Zh6+hMy/zSDU1U4WvjNX1BLAwQKAAAACADqc+Jc0nf8t20AAAB7AAAAHQAAAHdvcmQvX3JlbHMvZm9vdG5vdGVzLnhtbC5yZWxzTYxBDgIhDEWvQrp3ii6MMcPMbg5g9AANViAOhVBiPL4sXf689/68fvNuPtw0FXFwnCwYFl+eSYKDx307XGBd5hvv1IehMVU1IxF1EHuvV0T1kTPpVCrLIK/SMvUxW8BK/k2B8WTtGdv/B+DyA1BLAwQKAAAACADqc+JcP0qOjcEBAACSBgAAEQAAAHdvcmQvZW5kbm90ZXMueG1szZTbbuMgEIZfxeI+wY661cqK04seVr2rmt0HoBjHqMAgwPbm7Xd8CM62VZQ2N70xp5lv/pkxrG/+apW0wnkJpiDZMiWJMBxKaXYF+fP7YfGT3GzWXS5MaSAIn6C98XlneUHqEGxOqee10MwvteQOPFRhyUFTqCrJBe3AlXSVZukwsw648B7ht8y0zJMJp9/TwAqDhxU4zQIu3Y5q5l4bu0C6ZUG+SCXDHtnp9QEDBWmcySfEIgrqXfJR0DQcPNw5cUeXO+CNFiYMEakTCjWA8bW0cxpfpeFhfYC0p5JotSKxBdnVZT24c6zDYQaeI78cnbQalZ8mZukZHekR0eMcCf/HPCjRTJo58JdKc1Tc7MfnAKu3ALu7rDm/HDR2psnLaI/mNbKM+BRravJxav4yMduaWbyBmuePOwOOvShUhC1LsOpJ/1uToxcn6fKwt2jghWWOBXAEt2RZkEU22Nnh8+T6wVvGMQAasCoIvNxpb6xkn/LqKi6emz4iawIQulnT6D5+pvk27FUfvWWqIPejmGdRCYfvo5j8JlsRT6ftCIui4wEdFNPo9FGqHEyQphkemO3btNPvn/WH+k9UYJ77zT9QSwMECgAAAAgA6nPiXNJ3/LdtAAAAewAAABwAAAB3b3JkL19yZWxzL2VuZG5vdGVzLnhtbC5yZWxzTYxBDgIhDEWvQrp3ii6MMcPMbg5g9AANViAOhVBiPL4sXf689/68fvNuPtw0FXFwnCwYFl+eSYKDx307XGBd5hvv1IehMVU1IxF1EHuvV0T1kTPpVCrLIK/SMvUxW8BK/k2B8WTtGdv/B+DyA1BLAwQKAAAACADqc+JcTZ/KyqEBAABzBQAAEQAAAHdvcmQvc2V0dGluZ3MueG1spZTdbtswDIVfxdB9IrtYi8GoW3Qr1vVi2EW3B2Al2RYiUYIk28vbj47juD9AkTRXkkHxO0ekxevbf9ZkvQpRO6xYsc5ZplA4qbGp2N8/P1ZfWRYToATjUFVsqyK7vbkeyqhSokMxIwDGcvCiYm1KvuQ8ilZZiGurRXDR1WktnOWurrVQfHBB8ou8yHc7H5xQMRLoO2APke1x9j3NeYUUrF2wkOgzNNxC2HR+RXQPST9ro9OW2PnVjHEV6wKWe8TqYGhMKSdD+2XOCMfoTin3TnRWYdop8qAMeXAYW+2Xa3yWRsF2hvQfXaK3hh1aUHw5rwf3AQZaFuAx9uWUZM3k/GNikR/RkRFxyDjGwmvN2YkFjYvwp0rzorjF5WmAi7cA35zXnIfgOr/Q9Hm0R9wcWOO7PoG1b/LLq8XzzDy14OkFWlE+NugCPBtyRC3LqOrZ+FuzceJIHb2B7TcQm4ZqgXKXxseQ6hXeofwt5U8FkqZZNpQ9mIrVYKJiuzPTlFh2T9MAm08Wl4y2CJakXw2UX06qMdSFE0o+SvJFky/z8uY/UEsDBAoAAAAIAOpz4lyLhjnExQEAAMYIAAARAAAAd29yZC9jb21tZW50cy54bWyl1N1y4iAYBuBbcThXklhTN9O0J53t9HjbC6CAwjT8DKDRu19SJUmXnU6CR+ok35OX18DD00k0iyM1litZg3yVgQWVWBEu9zV4f/u93IKFdUgS1ChJa3CmFjw9PrQVVkJQ6ezCA9JW+FQD5pyuILSYUYHsSnBslFU7t/L3QrXbcUwhMaj1Niyy/A5ihoyjJ9Ab+WxkA3/BbQwVCVCewSKPqfVsqoRdqgi6S4J8qkjapEn/WVyZJhWxdJ8mrWNpmyZFr5PAEaQ0lf7iThmBnP9p9lAg83nQSw9r5PgHb7g7ezMrA4O4/ExI5Kd6QazJbOEeCkVosyZBUTU4GFld55f9fBe9usxfP8KEmbL+y8izwoduO3+tHBra+C6UtIxr29eZqvmLLCDHnxZxFE24r9X5xO3SKkO6vrKvb9ooTK31HT5fqhzAKfGv/YvmkvxnMc8m/CMd0U9MifD9mSGJ8G/h8OCkakbl5hMPkAAUEVBiOvHAD8b2akA87NDO4RO3RnDK3uFk5KSFGQGWOMJmKUXoFXazyCGGLBuLdF6oTc+dxagjvb9tI7wYddCDxm/TXodjrZXzFpiV/7au7W1h/jCkKYCPfwFQSwMECgAAAAgA6nPiXNJ3/LdtAAAAewAAABwAAAB3b3JkL19yZWxzL2NvbW1lbnRzLnhtbC5yZWxzTYxBDgIhDEWvQrp3ii6MMcPMbg5g9AANViAOhVBiPL4sXf689/68fvNuPtw0FXFwnCwYFl+eSYKDx307XGBd5hvv1IehMVU1IxF1EHuvV0T1kTPpVCrLIK/SMvUxW8BK/k2B8WTtGdv/B+DyA1BLAwQKAAAACADqc+JcY+1e1h0BAABDAwAAEgAAAHdvcmQvZm9udFRhYmxlLnhtbJ3R3W7CIBQH8Fch3Cu1mY1prN4sS3a/PQACtUQOp+Hg1LcfrbZr4o3dFRDy/+V8bPdXcOzHBLLoK75aZpwZr1Bbf6z499fHYsMZRem1dOhNxW+G+H63vZQ1+kgspT2VoCrexNiWQpBqDEhaYmt8+qwxgIzpGY4CZDid24VCaGW0B+tsvIk8ywr+YMIrCta1VeYd1RmMj31eBOOSiJ4a29KgXV7RLhh0G1AZotQxuLsH0vqRWb09QWBVQMI6LlMzj4p6KsVXWX8D9wes5wH5E1Aoc51nbB6GSMmpY/U8pxgdqyfO/4qZAKSjbmYp+TBX0WVllI2kZiqaeUWtR+4G3YxAlZ9Hj0EeXJLS1llaHOthdp9cd7D7MtjQAhe7X1BLAwQKAAAACADqc+Jc0nf8t20AAAB7AAAAHQAAAHdvcmQvX3JlbHMvZm9udFRhYmxlLnhtbC5yZWxzTYxBDgIhDEWvQrp3ii6MMcPMbg5g9AANViAOhVBiPL4sXf689/68fvNuPtw0FXFwnCwYFl+eSYKDx307XGBd5hvv1IehMVU1IxF1EHuvV0T1kTPpVCrLIK/SMvUxW8BK/k2B8WTtGdv/B+DyA1BLAQIUAAoAAAAAAOpz4lwAAAAAAAAAAAAAAAAFAAAAAAAAAAAAEAAAAAAAAAB3b3JkL1BLAQIUAAoAAAAAAOpz4lwAAAAAAAAAAAAAAAALAAAAAAAAAAAAEAAAACMAAAB3b3JkL19yZWxzL1BLAQIUAAoAAAAIAOpz4lxn9MsTTwEAAAAFAAAcAAAAAAAAAAAAAAAAAEwAAAB3b3JkL19yZWxzL2RvY3VtZW50LnhtbC5yZWxzUEsBAhQACgAAAAgA6nPiXLZwT1q8DAAAhbABABEAAAAAAAAAAAAAAAAA1QEAAHdvcmQvZG9jdW1lbnQueG1sUEsBAhQACgAAAAgA6nPiXLTnJbLjAgAAoxAAAA8AAAAAAAAAAAAAAAAAwA4AAHdvcmQvc3R5bGVzLnhtbFBLAQIUAAoAAAAAAOpz4lwAAAAAAAAAAAAAAAAJAAAAAAAAAAAAEAAAANARAABkb2NQcm9wcy9QSwECFAAKAAAACADqc+JcJtM4FGIBAADHAgAAEQAAAAAAAAAAAAAAAAD3EQAAZG9jUHJvcHMvY29yZS54bWxQSwECFAAKAAAACADqc+JcHinpWnACAABkDAAAEgAAAAAAAAAAAAAAAACIEwAAd29yZC9udW1iZXJpbmcueG1sUEsBAhQACgAAAAAA6nPiXAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAQAAAAKBYAAF9yZWxzL1BLAQIUAAoAAAAIAOpz4lwfo5KW5gAAAM4CAAALAAAAAAAAAAAAAAAAAEwWAABfcmVscy8ucmVsc1BLAQIUAAoAAAAIAOpz4lygjo6lmgEAADgIAAATAAAAAAAAAAAAAAAAAFsXAABbQ29udGVudF9UeXBlc10ueG1sUEsBAhQACgAAAAgA6nPiXFh52yKSAAAA5AAAABMAAAAAAAAAAAAAAAAAJhkAAGRvY1Byb3BzL2N1c3RvbS54bWxQSwECFAAKAAAACADqc+Jc4vyd2pMAAADmAAAAEAAAAAAAAAAAAAAAAADpGQAAZG9jUHJvcHMvYXBwLnhtbFBLAQIUAAoAAAAIAOpz4lycicmRzgEAAK0GAAASAAAAAAAAAAAAAAAAAKoaAAB3b3JkL2Zvb3Rub3Rlcy54bWxQSwECFAAKAAAACADqc+Jc0nf8t20AAAB7AAAAHQAAAAAAAAAAAAAAAACoHAAAd29yZC9fcmVscy9mb290bm90ZXMueG1sLnJlbHNQSwECFAAKAAAACADqc+JcP0qOjcEBAACSBgAAEQAAAAAAAAAAAAAAAABQHQAAd29yZC9lbmRub3Rlcy54bWxQSwECFAAKAAAACADqc+Jc0nf8t20AAAB7AAAAHAAAAAAAAAAAAAAAAABAHwAAd29yZC9fcmVscy9lbmRub3Rlcy54bWwucmVsc1BLAQIUAAoAAAAIAOpz4lxNn8rKoQEAAHMFAAARAAAAAAAAAAAAAAAAAOcfAAB3b3JkL3NldHRpbmdzLnhtbFBLAQIUAAoAAAAIAOpz4lyLhjnExQEAAMYIAAARAAAAAAAAAAAAAAAAALchAAB3b3JkL2NvbW1lbnRzLnhtbFBLAQIUAAoAAAAIAOpz4lzSd/y3bQAAAHsAAAAcAAAAAAAAAAAAAAAAAKsjAAB3b3JkL19yZWxzL2NvbW1lbnRzLnhtbC5yZWxzUEsBAhQACgAAAAgA6nPiXGPtXtYdAQAAQwMAABIAAAAAAAAAAAAAAAAAUiQAAHdvcmQvZm9udFRhYmxlLnhtbFBLAQIUAAoAAAAIAOpz4lzSd/y3bQAAAHsAAAAdAAAAAAAAAAAAAAAAAJ8lAAB3b3JkL19yZWxzL2ZvbnRUYWJsZS54bWwucmVsc1BLBQYAAAAAFgAWAHwFAABHJgAAAAA=";
+function downloadWord(){
+  const bin = atob(DOCX_B64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  const blob = new Blob([bytes], {type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "Decision-Making-Questionnaire.docx";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+document.getElementById("wordBtn").addEventListener("click", downloadWord);
+document.getElementById("wordBtn2").addEventListener("click", downloadWord);
+
+updateProgress();
+</script>
+</body>
+</html>
