@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEASE-TN — Abstinence Outcome Reporting Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f6f7f3; --card:#fffffe; --ink:#1c2420; --ink-soft:#4a544d;
+  --line:#dfe3da; --line-soft:#eaede6;
+  --pine:#1f4d3f; --pine-deep:#163a30; --pine-bright:#2f6b57;
+  --amber:#b5741f; --amber-soft:#f4ead9;
+  --mist:#eef2ec; --focus:#2f6b57;
+  --danger:#9a3b2c;
+  --r:10px; --shadow:0 1px 2px rgba(28,36,32,.04), 0 8px 24px rgba(28,36,32,.05);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Inter",system-ui,-apple-system,sans-serif; font-size:15px; line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:"Spectral",Georgia,serif; font-weight:600; line-height:1.15; margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+a{color:var(--pine-bright)}
+
+/* ---- Top bar ---- */
+.topbar{
+  position:sticky; top:0; z-index:40; background:rgba(246,247,243,.86);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.topbar-inner{max-width:1240px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:18px; flex-wrap:wrap}
+.brand{display:flex; align-items:baseline; gap:12px; margin-right:auto}
+.brand .logo{font-family:"Spectral",serif; font-weight:600; font-size:22px; letter-spacing:.02em; color:var(--pine)}
+.brand .logo b{color:var(--amber); font-weight:600}
+.brand .tag{font-size:12.5px; color:var(--ink-soft); border-left:1px solid var(--line); padding-left:12px}
+.actions{display:flex; gap:8px; flex-wrap:wrap}
+button{font-family:inherit; font-size:13.5px; cursor:pointer; border-radius:8px; border:1px solid var(--line);
+  background:var(--card); color:var(--ink); padding:8px 13px; transition:.15s ease; white-space:nowrap}
+button:hover{border-color:var(--pine); color:var(--pine)}
+button:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+button.primary{background:var(--pine); color:#fff; border-color:var(--pine)}
+button.primary:hover{background:var(--pine-deep); color:#fff}
+button.ghost{background:transparent; border-color:transparent; color:var(--ink-soft)}
+button.ghost:hover{background:var(--mist); color:var(--pine)}
+select.ex{font-family:inherit; font-size:13.5px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink)}
+
+/* ---- Layout ---- */
+.wrap{max-width:1240px; margin:0 auto; padding:28px 24px 120px; display:grid; grid-template-columns:250px 1fr; gap:40px; align-items:start}
+@media(max-width:900px){ .wrap{grid-template-columns:1fr; gap:20px} }
+
+/* ---- Sidebar / spine ---- */
+.side{position:sticky; top:82px}
+@media(max-width:900px){ .side{position:static} }
+.progress-card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:18px; box-shadow:var(--shadow); margin-bottom:16px}
+.progress-card h3{font-size:14px; color:var(--ink-soft); font-family:"Inter"; font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px}
+.pbar{height:7px; background:var(--mist); border-radius:99px; overflow:hidden}
+.pbar>i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--pine-bright),var(--pine)); transition:width .4s ease}
+.pcount{font-size:12.5px; color:var(--ink-soft); margin-top:9px}
+.pcount b{color:var(--ink); font-variant-numeric:tabular-nums}
+.spine{list-style:none; margin:0; padding:0}
+.spine li{margin:0}
+.spine a{display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; text-decoration:none;
+  color:var(--ink-soft); font-size:13.5px; transition:.15s; border:1px solid transparent}
+.spine a:hover{background:var(--card); color:var(--pine); border-color:var(--line-soft)}
+.spine a.active{background:var(--mist); color:var(--pine); font-weight:500}
+.ring{--p:0; flex:none; width:22px; height:22px; border-radius:50%;
+  background:conic-gradient(var(--pine-bright) calc(var(--p)*1%), var(--line-soft) 0);
+  display:grid; place-items:center}
+.ring::after{content:""; width:14px; height:14px; border-radius:50%; background:var(--card)}
+.ring.done{background:var(--pine)}
+.ring.done::after{content:"✓"; color:#fff; font-size:11px; width:auto; height:auto; background:none; line-height:1}
+.snum{font-family:"IBM Plex Mono",monospace; font-size:11px; opacity:.55; width:14px}
+
+/* ---- Intro ---- */
+.intro{grid-column:1/-1; background:linear-gradient(180deg,#fff,#fbfcf9); border:1px solid var(--line);
+  border-radius:14px; padding:26px 30px; box-shadow:var(--shadow); margin-bottom:4px}
+.intro h1{font-size:30px; letter-spacing:.005em}
+.intro h1 .expand{color:var(--ink-soft); font-weight:400; font-size:17px; font-style:italic}
+.intro p{max-width:70ch; color:var(--ink-soft); margin:12px 0 0}
+.intro .note{font-size:13px; margin-top:14px; color:var(--ink-soft); background:var(--mist); border-radius:8px; padding:10px 14px; display:inline-block}
+
+/* ---- Main sections ---- */
+main{min-width:0}
+.section{margin-bottom:14px; scroll-margin-top:90px}
+.section-head{display:flex; align-items:baseline; gap:14px; padding:22px 4px 10px}
+.section-head .num{font-family:"IBM Plex Mono",monospace; font-size:13px; color:var(--amber); font-weight:500; padding-top:5px}
+.section-head h2{font-size:22px}
+.section-desc{color:var(--ink-soft); font-size:13.5px; max-width:78ch; margin:2px 0 0}
+
+.sub{margin:16px 0}
+.sub-label{font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--pine); font-weight:600; margin:0 0 8px 2px}
+
+.item{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:16px 18px; margin-bottom:10px; box-shadow:var(--shadow); transition:border-color .15s}
+.item:focus-within{border-color:var(--pine-bright)}
+.item.filled{border-left:3px solid var(--pine-bright)}
+.item-top{display:flex; justify-content:space-between; gap:14px; align-items:flex-start}
+.q{font-weight:500; font-size:14.5px; color:var(--ink)}
+.feat{font-size:11.5px; color:var(--ink-soft); margin-bottom:3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.badge{font-size:10px; text-transform:uppercase; letter-spacing:.05em; padding:1px 6px; border-radius:99px; background:var(--amber-soft); color:var(--amber); font-weight:600}
+.onto{font-size:11px; color:#8b968d; background:var(--mist); padding:1px 7px; border-radius:5px; cursor:help; text-decoration:underline dotted rgba(139,150,141,.55); text-underline-offset:2px}
+.field{margin-top:11px}
+input[type=text], textarea, .field input{width:100%; font-family:inherit; font-size:14px; color:var(--ink);
+  background:#fcfdfb; border:1px solid var(--line); border-radius:8px; padding:9px 11px; transition:.15s}
+textarea{min-height:62px; resize:vertical; line-height:1.5}
+input:focus, textarea:focus{outline:none; border-color:var(--pine-bright); background:#fff; box-shadow:0 0 0 3px rgba(47,107,87,.1)}
+.hint{font-size:11.5px; color:#8b968d; margin-top:6px; display:flex; align-items:center; gap:6px}
+.hint .k{color:var(--pine-bright)}
+.numwrap{display:flex; align-items:center; gap:9px}
+.numwrap .unit{font-size:12px; color:var(--ink-soft); white-space:nowrap}
+/* multi-select token field */
+.tokenfield{display:flex; flex-wrap:wrap; gap:6px; align-items:center; width:100%;
+  background:#fcfdfb; border:1px solid var(--line); border-radius:8px; padding:6px 8px; min-height:40px; cursor:text; transition:.15s}
+.tokenfield:focus-within{border-color:var(--pine-bright); background:#fff; box-shadow:0 0 0 3px rgba(47,107,87,.1)}
+.chip{display:inline-flex; align-items:center; gap:5px; background:var(--mist); color:var(--pine-deep);
+  border:1px solid var(--line-soft); border-radius:6px; padding:3px 5px 3px 9px; font-size:13px; line-height:1.25}
+.chip button{all:unset; cursor:pointer; color:var(--pine-bright); font-size:15px; line-height:1; padding:0 2px; border-radius:4px}
+.chip button:hover{color:var(--danger)}
+.tf-input{flex:1 1 130px; min-width:130px; border:none!important; background:transparent!important; box-shadow:none!important; padding:3px 2px!important}
+.tf-input:focus{outline:none}
+/* module selector */
+.modules{grid-column:1/-1; display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px;
+  background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 22px; box-shadow:var(--shadow); margin-bottom:4px}
+.modules-label{font-size:11.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-soft); font-weight:600}
+.modrow{display:flex; flex-wrap:wrap; gap:8px}
+.modchip{display:inline-flex; align-items:center; gap:8px; padding:7px 14px; border-radius:99px; border:1px solid var(--line);
+  background:var(--card); font-size:13.5px; cursor:pointer; color:var(--ink); transition:.15s}
+.modchip:hover{border-color:var(--pine)}
+.modchip[aria-pressed="true"]{background:var(--pine); color:#fff; border-color:var(--pine)}
+.modchip .box{width:15px; height:15px; border-radius:4px; border:1.5px solid currentColor; display:grid; place-items:center; font-size:10px; line-height:1}
+.modchip[aria-pressed="true"] .box::after{content:"✓"}
+.modrec{font-size:12.5px; color:var(--amber); margin-left:auto; max-width:34ch; line-height:1.4}
+@media(max-width:720px){ .modrec{margin-left:0; flex-basis:100%; max-width:none} }
+details.help{margin-top:10px; border-top:1px dashed var(--line-soft); padding-top:9px}
+details.help summary{cursor:pointer; font-size:12.5px; color:var(--pine-bright); list-style:none; display:inline-flex; align-items:center; gap:6px; user-select:none}
+details.help summary::-webkit-details-marker{display:none}
+details.help summary::before{content:"›"; transition:transform .2s; display:inline-block; font-size:15px}
+details.help[open] summary::before{transform:rotate(90deg)}
+.help-body{font-size:12.8px; color:var(--ink-soft); margin-top:8px; line-height:1.55}
+.help-body .why{margin-top:8px; padding-left:11px; border-left:2px solid var(--amber-soft)}
+.help-body .why b{color:var(--amber); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; display:block; margin-bottom:2px}
+
+/* ---- Set panel ---- */
+.setpanel{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:16px; box-shadow:var(--shadow); margin-top:16px}
+.setpanel h3{font-family:"Inter"; font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); font-weight:600}
+.setlist{list-style:none; margin:10px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
+.setlist li{display:flex; align-items:center; gap:8px; font-size:12.5px; background:var(--mist); border-radius:7px; padding:7px 9px}
+.setlist li span{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.setlist li button{padding:2px 7px; font-size:12px}
+.setempty{font-size:12.5px; color:#8b968d; margin-top:10px}
+
+.toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--pine-deep); color:#fff;
+  padding:11px 20px; border-radius:10px; font-size:13.5px; box-shadow:0 10px 30px rgba(0,0,0,.2); opacity:0; transition:.3s; z-index:60}
+.toast.show{transform:translateX(-50%) translateY(0); opacity:1}
+.foot{grid-column:1/-1; margin-top:30px; padding-top:18px; border-top:1px solid var(--line); font-size:12px; color:#8b968d}
+@media(prefers-reduced-motion:reduce){*{transition:none!important; scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="logo">CEASE<b>-TN</b></span>
+      <span class="tag">Abstinence outcome reporting form</span>
+    </div>
+    <div class="actions">
+      <select class="ex" id="exSelect" title="Load a worked example"><option value="">Load example…</option></select>
+      <button class="ghost" id="importBtn">Import JSON</button>
+      <button class="ghost" id="clearBtn">Clear</button>
+      <button id="addSetBtn">Add to set</button>
+      <button class="primary" id="csvBtn">Download CSV</button>
+      <button class="primary" id="jsonBtn">Download JSON</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="intro">
+    <h1>CEASE-TN <span class="expand">— Consistent Evaluation of Abstinence: Standard for Endpoints (Tobacco / Nicotine)</span></h1>
+    <p>A structured form for recording <em>how</em> an abstinence outcome is defined, measured, targeted and analysed — so that results from studies and services can be reported consistently and compared. Complete one form for <strong>each</strong> outcome assessment scenario (for example, a 4-week and a 26-week endpoint, or self-report and biochemically-verified versions), then export each as CSV or JSON — or build a set and export them together.</p>
+    <span class="note">Suggested options appear as you type in most fields — but they are non-restrictive: any free text is accepted. Use “Not reported” where a source is silent and “Unclear” where it is ambiguous.</span>
+  </section>
+
+  <div class="modules">
+    <span class="modules-label">Modules to include</span>
+    <div class="modrow" id="modRow"></div>
+    <span class="modrec">Recommended: include all four when reporting study outcomes or statistics from clinical services.</span>
+  </div>
+
+  <aside class="side">
+    <div class="progress-card">
+      <h3>Completion</h3>
+      <div class="pbar"><i id="pbarFill"></i></div>
+      <div class="pcount"><b id="pDone">0</b> of <b id="pTotal">0</b> items answered</div>
+    </div>
+    <nav><ul class="spine" id="spine"></ul></nav>
+    <div class="setpanel">
+      <h3>Assessment set</h3>
+      <ul class="setlist" id="setList"></ul>
+      <div class="setempty" id="setEmpty">No assessments saved yet. Fill in the form and choose “Add to set”.</div>
+      <div class="actions" id="setActions" style="margin-top:12px; display:none">
+        <button id="csvAllBtn">Export set (CSV)</button>
+        <button id="jsonAllBtn">Export set (JSON)</button>
+      </div>
+    </div>
+  </aside>
+
+  <main id="form"></main>
+  <datalist id="datalists-host"></datalist>
+  <div class="foot">
+    CEASE-TN specification v5.0 · This form runs entirely in your browser; nothing is uploaded. Ontology property names (shown in mono) become the keys in the JSON export; hover any of them for its plain-language label, which also travels in the JSON.
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const MODEL = {"sections_order": ["Outcome definition", "Outcome measurement", "Estimand", "Analysis"], "section_desc": {"Outcome definition": "This section defines what the outcome is. It specifies the behaviour that must be absent, the time period being assessed, and any lapse or quit-date reset rules. It is about what counts as the outcome, not how the information was collected or analysed.", "Outcome measurement": "This section describes how information is collected to decide whether the outcome occurred. It covers timing and contact procedures, incentives for responding, question wording, response options, and biochemical verification.", "Estimand": "This section describes the target quantity the study is trying to learn about using the outcome. For example, is it the proportion absitent in a single arm, or a comparison between arms?", "Analysis": "This section describes how the target quantity is estimated from the collected data. It covers who is included in the analysis, how missing data and clustering are handled, what model or method is used, whether variables are adjusted for, and how confidence intervals are obtained."}, "items": [{"section": "Outcome definition", "subsection": "Identification", "status": "old", "feature": "Outcome assessment name", "ontology": "hasOutcomeAssessmentName", "question": "What name has been given to this outcome assessment scenario?", "guidance": "Suggested dropdown from 'Assessment scenario' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "If you are using a standard assessment scenario such as one of the Russell Standard versions, select that option from the drop-down list. Otherwise write a name  to refer to your bespoke assessment scenario. You should complete the form for all of them. For example, if you are reporting 4-week and 12-week assessments then complete the form for both of these. Similarly, if you are reporting both 'biochemically verified' and 'self-report only' assessments then fill in the form for both of these.", "justification": "It is necessary to give this assessment a unique label to refer to it unambiguously in the study report or service evaluation. It makes the data much more usable if one of the standard assessment scenarios is used than bespoke ones.", "input": "combo", "list": "Assessment scenario", "examples": ["Russell Standard tobacco abstinence; 4-week;clinical; self-report only", "Russell Standard tobacco abstinence; 26-week;research; biochemically verified", "CO-verified tobacco smoking abstinence weeks 9-12 from start of treatment", "Self-reported tobacco smoking abstinence weeks 2-4 from target quit date", "Self-reported tobacco smoking abstinence weeks 25-26 from randomisation"], "multi": false}, {"section": "Outcome definition", "subsection": "Abstinence behaviour/domain", "status": "old", "feature": "Outcome assessment behaviour type", "ontology": "hasOutcomeAssessmentBehaviourType", "question": "What is the behaviour that the respondent is supposed to be abstinent from?", "guidance": "Suggested dropdown from 'Behaviour list' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select one option from the drop-down list. This may be different from the form of tobacco use that participants previously engaged in. For example, the study sample may be cigarette smokers but abstinence may be from any form of tobacco product. Cigarette use include smoking cigarlillos and bidis. Tobacco smoking includes all of these plus cigars, oipes and shisha. Nicotine use includes pouches and licensed nicotine products.", "justification": "It is often assumed that readers of study reports or service evaluations will know what behaviour is being referred to but this is often not the case and it is also important to specify the behaviour explicitly for evidence synthesis.", "input": "combo", "list": "Behaviour list", "examples": ["Tobacco or e-cigarette use", "Tobacco-smoking", "Tobacco smoking", "Tobacco smoking", "Tobacco smoking"], "multi": false}, {"section": "Outcome definition", "subsection": "Assessment period", "status": "old", "feature": "Outcome assessment period temporal reference", "ontology": "hasOutcomeAssessmentPeriodTemporalReference", "question": "What is the time point from which the start of the abstinence assessment period is calculated?", "guidance": "Suggested dropdown from 'Temporal reference' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select one option from the drop-down list. This is not the start of the abstinence period but the point from which the start of the abstinence period is calculated. E.g., If the abstinence period of interest starts 2 weeks after the target quit date, then select 'target quit date'.", "justification": "Different studies and services may start counting assessment periods from different time points. Having a temporal reference is essential for specifying all the other time points.", "input": "combo", "list": "Temporal reference", "examples": ["Target quit date", "Target quit date", "Start of treatment", "Target quit date", "Assignment to study group"], "multi": false}, {"section": "Outcome definition", "subsection": "Assessment period", "status": "old", "feature": "Outcome assessment period start point", "ontology": "hasOutcomeAssessmentPeriodStartPoint", "question": "From the temporal reference point, how many days are there until the start of the abstinence period that is being assessed?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number. E.g., If the abstinence period being assessed starts 2 weeks from the target quit date, write 14 and select 'target quit date' in the previous question. If the reference point is the target quit date and the assessment period starts from that point, enter 0.", "justification": "We use days to standardise on a single unit of measurement that will always be applicable. Many studies and service evaluations start assessing abstinence at some point after the target quit date. In the case of 'point prevalence' abstinence, the start of the assessed abstinence period is typically 7 days before the end of the assessment period. The formulation in CEASE-TN allows for maximum flexibility and includes both 'point prevalence' and 'continuous' abstinence.", "input": "numeric", "list": null, "examples": ["14", "0", "63", "14", "173"], "multi": false}, {"section": "Outcome definition", "subsection": "Assessment period", "status": "old", "feature": "Outcome assessment period end point", "ontology": "hasOutcomeAssessmentPeriodEndPoint", "question": "How many days are there from the temporal reference point to the end of the abstinence period being assessed?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number. E.g., If the temporal reference point is the target quit date and abstinence is being assessed up to the end of week 4, write '28'. This can often also be thought of as the final follow-up point in days.", "justification": "We count from the temporal reference because in some studies or services (e.g., flexible quit date studies) there may not be a target quit date. We use days to standardise on a single unit of measurement that will always be applicable.", "input": "numeric", "list": null, "examples": ["28", "182", "84", "28", "180"], "multi": false}, {"section": "Outcome definition", "subsection": "Lapse and reset rules", "status": "old", "feature": "Number of lapses allowed", "ontology": "hasNumberOfLapsesAllowed", "question": "How many lapses are allowed during the assessed abstinence period?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number. If lapses no lapses are allowed, then write 0. If lapses are allowed then write the number. But note that this only refers to the abstinence period being assessed. For example, if lapses are allowed during a 2-week grace period after the quit date but not during the official abstinence period of weeks 2 to 4, write 0. In the Russell Standard version 1, up to 5 lapses were allowed so 5 is one of the preset options.", "justification": "Allowing a certain number of lapses is common but best avoided because it complicates the interpretation of the data and reduces confidence in extrapolation of the likelihood of abstinence into the months and years following the data collection.", "input": "numeric", "list": null, "examples": ["0", "5", "0", "0", "0"], "multi": false}, {"section": "Outcome definition", "subsection": "Lapse and reset rules", "status": "old", "feature": "Type of lapse allowed", "ontology": "hasTypeOfLapseAllowed", "question": "What kind of lapses are allowed?", "guidance": "Suggested dropdown from 'Lapse type' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "For cigarette smoking this would typically be smoking a single cigarette or part of a cigarette in a single session. For other tobacco products it may be a single session of use.", "justification": "Lapses can be defined in many different ways, which is another reason why it is best to avoid allowing them when assessing abstinence. This is further complicated by the different types of tobacco or nicotine product have different usage patterns.", "input": "combo", "list": "Lapse type", "examples": ["Cigarette smoked", "Cigarette smoked", "Not applicable", "Not applicable", "Not applicable"], "multi": false}, {"section": "Outcome definition", "subsection": "Lapse and reset rules", "status": "old", "feature": "Additional lapse rule", "ontology": "hasAdditionalLapseRule", "question": "Are there any additional rules about lapses?", "guidance": "Suggested dropdown from 'Additional lapse rules' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select from the drop-down list or write the rule in. Even when lapses are allowed, there can be rules about when they are allowed. For example, in the Russell Standard version 1, lapses were not allowed in the 7 days prior to the end of the abstinence period. If not applicable leave blank.", "justification": "It is best to avoid these ad hoc rules because they complicate interpretation of the data but sometimes people want to use them in special cases.", "input": "combo", "list": "Additional lapse rules", "examples": ["", "No lapses within 7 days of the outcome assessment", "Not applicable", "Not applicable", "Not applicable"], "multi": false}, {"section": "Outcome definition", "subsection": "Lapse and reset rules", "status": "old", "feature": "Number of quit date resets allowed", "ontology": "hasNumberOfQuitDateResetsAllowed", "question": "How many times is the respondent permitted to reset their quit date in this abstinence attempt?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number. If no resets are allowed write 0. A reset is when a respondent who has set a target quit date and reached that date but has not quit or who relapses later and sets a new quit date. The reset may occur before or after the original target quit date. If a smoker quits before the target quit date this is not counted as a reset.", "justification": "This can make a substantial difference to reported abstinence rates as the more time a respondents can reset the quit date the greate their chances of achieving abstinence.", "input": "numeric", "list": null, "examples": ["0", "0", "0", "0", "0"], "multi": false}, {"section": "Outcome measurement", "subsection": "Assessment schedule", "status": "old", "feature": "Number of outcome assessments", "ontology": "hasNumberOfOutcomeAssessments", "question": "How many assessment are there in total for this abstinence period?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number. If there is just one assessment at the end, then type 1. Not that these must be assessments that contribute to deciding whether or not the person is abstinence for the abstinence period beign reported.", "justification": "Studies and service evaluations often check on abstinence repeatedly during the abstinence period to arrive at a decision on whether people are abstinent during the period.", "input": "numeric", "list": null, "examples": ["1", "1", "3", "2", "1"], "multi": false}, {"section": "Outcome measurement", "subsection": "Assessment schedule", "status": "old", "feature": "Outcome assessment time-window duration", "ontology": "hasOutcomeAssessmentTime-WindowDuration", "question": "How many days is allowed to obtain each outcome assessment?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number for each assessment separated by semicolons. E.g., If there are two assessments and up to 7 days is allowed to obtain the data in both cases write '7; 7'.", "justification": "The amount of time allowed to obtain assessments may affect the amount of missing data and also the accuracy of responding.", "input": "numeric", "list": null, "examples": ["7", "14", "Not specified", "Not specified", "14"], "multi": false}, {"section": "Outcome measurement", "subsection": "Contact and response process", "status": "old", "feature": "Number of outcome assessment contact attempts", "ontology": "hasNumberOfOutcomeAssessmentContactAttempts", "question": "How many attempts are made to obtain each assessment?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number for each assessment separated by semicolons. E.g., If there are two assessments and up to attempts is allowed to obtain the data in both cases write '3; 3'.", "justification": "The more attempts are allowed, the less the amount of missing data which can affect the recorded abstinence rate.", "input": "numeric", "list": null, "examples": ["3", "5", "Not speccified", "Not specified", "6"], "multi": false}, {"section": "Outcome measurement", "subsection": "Contact and response process", "status": "old", "feature": "Outcome assessment contact modality", "ontology": "hasOutcomeAssessmentContactModality", "question": "How are people contacted in order to make the assessment?", "guidance": "Suggested dropdown from 'Contact modality' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Write the modes of contact with semicolons between them. Include all those that can be used.", "justification": "The format for this question does not allow specification of which method of contact occurs in what order or whether it is different for different assessments. This would add considerably to the complexity of the form but could be added if it was found to be important.", "input": "combo", "list": "Contact modality", "examples": ["Face-to-face; Text message; Telephone; Online form or checkbox; Email", "Face-to-face; Text message; Telephone; Online form or checkbox; Email", "Face-to-face; Telephone", "Face-to-face; Telephone", "Text message; Email; Telephone"], "multi": true}, {"section": "Outcome measurement", "subsection": "Incentives for responding", "status": "new", "feature": "Incentive offered for responding", "ontology": "hasResponseIncentiveOffered", "question": "Is an incentive offered to encourage people to provide the outcome assessment?", "guidance": "Suggested dropdown from 'Incentive offered' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select one option. This belongs in outcome measurement because incentives can affect whether outcome data are obtained. Include incentives offered for completing the outcome assessment, returning a biochemical sample, or attending a verification appointment.", "justification": "Incentives can influence response rates and may affect the amount and pattern of missing outcome data.", "input": "combo", "list": "Incentive offered", "examples": ["No", "Not specified", "Yes", "Not specified", "Yes"], "multi": false}, {"section": "Outcome measurement", "subsection": "Incentives for responding", "status": "new", "feature": "Incentive details for responding", "ontology": "hasResponseIncentiveDetails", "question": "What incentive is offered for responding to the outcome assessment?", "guidance": "Free text. No dropdown is used.", "clarification": "If an incentive is offered, briefly state the type and when it is given. For example: £10 voucher after completing follow-up; prize draw entry after returning saliva sample; travel reimbursement for attending CO verification. If no incentive is offered, write “Not applicable”.", "justification": "The details help distinguish routine reimbursement from incentives linked to response or verification.", "input": "freetext", "list": null, "examples": ["Not applicable", "Not specified", "Voucher for attending verification visit", "Not specified", "Voucher for completing follow-up"], "multi": false}, {"section": "Outcome measurement", "subsection": "Question and response instrument", "status": "old", "feature": "Outcome assessment question modality", "ontology": "hasOutcomeAssessmentQuestionModality", "question": "What modalities are used to ask the outcome assessment questions?", "guidance": "Suggested dropdown from 'Communication type' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Write the assessment question modalities with semicolons between them. Include all those that can be used.", "justification": "The format for this question does not allow specification of which modalities are used in what order or whether it is different for different assessments. This would add considerably to the complexity of the form but could be added if it was found to be important.", "input": "combo", "list": "Communication type", "examples": ["Face-to-face; Email; Text message; Telephone", "Face-to-face; Email; Text message; Telephone", "Face-to-face; Telephone", "Face-to-face; Telephone", "Website"], "multi": true}, {"section": "Outcome measurement", "subsection": "Question and response instrument", "status": "old", "feature": "Outcome assessment question", "ontology": "hasOutcomeAssessmentQuestion", "question": "What question is used to assess abstinence?", "guidance": "Free text. No dropdown is used.", "clarification": "Write the exact wording of the question. It is recommended always to ask about whether they have smoked any of the relevant tobacco products for the whole of the assessed abstinence period.", "justification": "The exact question could be important to the accuracy and consistency of responses. This is especially important where no form of confirmation is being used. The question must be worded so as to maximise the accuracy of the resonse.", "input": "freetext", "list": null, "examples": ["Have you smoked or used any tobacco product at all in the past 2 weeks?", "Have you smoked or used any tobacco product at all since your quit date 6 months ago?", "Not specified", "Not specified", "Have you used combustible tobacco products (e.g., cigarettes, cigarillos, cigars, shisha, etc.) in the past 7 days?"], "multi": false}, {"section": "Outcome measurement", "subsection": "Question and response instrument", "status": "old", "feature": "Outcome assessment response modality", "ontology": "hasOutcomeAssessmentResponseModality", "question": "What modalities are used for respondents to report their abstinence?", "guidance": "Suggested dropdown from 'Communication type' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Write the response modalities with semicolons between them. Include all those that can be used.", "justification": "The format for this question does not allow specification of which modalities are used in what order or whether it is different for different assessments. This would add considerably to the complexity of the form but could be added if it was found to be important.", "input": "combo", "list": "Communication type", "examples": ["Face-to-face; Email; Text message; Telephone", "Face-to-face; Email; Text message; Telephone", "Face-to-face; Telephone", "Face-to-face; Telephone", "Website"], "multi": true}, {"section": "Outcome measurement", "subsection": "Question and response instrument", "status": "old", "feature": "Outcome assessment response format", "ontology": "hasOutcomeAssessmentResponseFormat", "question": "What response format is used for respodents to report abstinence?", "guidance": "Suggested dropdown from 'Response format' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select one option. Fixed-option response format requires your respondents to choose from a preset list of options. This is generally preferred to maximise accuracy and standardisation.", "justification": "It is best to used a fixed-option response format to maximise accuracy and consistency.", "input": "combo", "list": "Response format", "examples": ["Fixed-option", "Fixed-option", "Open", "Open", "Fixed-option"], "multi": false}, {"section": "Outcome measurement", "subsection": "Question and response instrument", "status": "old", "feature": "Outcome assessment responses provided to participant", "ontology": "hasOutcomeAssessmentResponsesProvidedToParticipant", "question": "Are the response options shown or otherwise given to respondents so that they know what they are?", "guidance": "Suggested dropdown from 'Yes/no' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select one option. It is preferable to show the response options to the respondents.", "justification": "For fixed-option response formats it is usually important to make sure that respondents know what the options are rather than interpreting whatever they come up with.", "input": "combo", "list": "Yes/no", "examples": ["Yes", "Yes", "Not applicable", "Not applicable", "Yes"], "multi": false}, {"section": "Outcome measurement", "subsection": "Question and response instrument", "status": "old", "feature": "Outcome assessment response option set", "ontology": "hasOutcomeAssessmentResponseOptionSet", "question": "What are the response options provided to respondents?", "guidance": "Free text. No dropdown is used.", "clarification": "Give the exact wording of the options separated by semicolons.", "justification": "The exact wording of response options could be very important in eliciting accurate and consistent information from respondents and should always be specified. Ideally a standard form should be used to maximise comparability across data sets. Even if you don't allow any lapses, it may help to promote honest reporting if you allow then to mention that they have smoked a small number of cigarettes.", "input": "freetext", "list": null, "examples": ["No; 1 to 5 cigarettes; More than 5 cigarettes", "No; 1 to 5 cigarettes; More than 5 cigarettes", "Not applicable", "Not applicable", "Yes; No"], "multi": false}, {"section": "Outcome measurement", "subsection": "Biochemical verification", "status": "old", "feature": "Outcome assessment biochemical confirmation", "ontology": "hasOutcomeAssessmentBiochemicalConfirmation", "question": "Is self-reported abstinence confirmed by expired-air CO, cotinine or some other biochemical test in any of the assessments?", "guidance": "Suggested dropdown from 'Confirmation' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select from the drop-down list.", "justification": "The format for this question does not allow specification of which forms of confirmation are used in what order or whether they are different for different assessments. This would add considerably to the complexity of the form but could be added if it was found to be important.", "input": "combo", "list": "Confirmation", "examples": ["No", "Yes", "Yes", "No", "No"], "multi": false}, {"section": "Outcome measurement", "subsection": "Biochemical verification", "status": "old", "feature": "Biochemical verification sample", "ontology": "hasBiochemicalVerificationSample", "question": "Which respondents are asked for confirmation of their abstinence?", "guidance": "Suggested dropdown from 'Sample' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select from the drop-down list.", "justification": "If biochemical confirmation is used it is preferable to use it for all respondents who claim abstinence.", "input": "combo", "list": "Sample", "examples": ["Not applicable", "All respondents claiming abstinence", "All respondents", "Not applicable", "Not applicable"], "multi": false}, {"section": "Outcome measurement", "subsection": "Biochemical verification", "status": "old", "feature": "Biochemical verification threshold", "ontology": "hasBiochemicalVerificationThreshold", "question": "Where biochemical verification is used, what threshold is used below which any report of abtinence is considered to be confirmed?", "guidance": "Enter a number or short numeric text. No dropdown is used.", "clarification": "Write a number a space and a unit of measurement. E.g., 10 ppm, If more than one type of assessment is used write all the thresholds separated by semicolons.", "justification": "The threshold used is important in that the higher the threshold the greater the chances of a false positive and the lower the chances of a false negative. It is best to used agreed thresholds of 10 ppm for expired-air CO and 15ng/ml for saliva cotinine.", "input": "numeric", "list": null, "examples": ["Not applicable", "10 ppm", "10 ppm", "Not applicable", "Not applicable"], "multi": false}, {"section": "Estimand", "subsection": "Target quantity type", "status": "new", "feature": "Primary estimand aim type", "ontology": "hasEstimandAimType", "question": "Is the main aim to estimate between-arm effects, within-arm summaries, or both?", "guidance": "Suggested dropdown from 'Estimand aim type' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select one option. Choose “between-arm effects” when the main target is a comparison between study groups, such as an effect of being assigned to one intervention rather than another. Choose “within-arm summaries” when the target is a value within one group, such as the abstinence rate in an intervention arm. Choose “both” when both are primary targets. You do not need to describe the interventions here.", "justification": "This keeps intervention reporting light while making clear whether the target quantity is comparative, single-arm, or both.", "input": "combo", "list": "Estimand aim type", "examples": ["Within-arm summaries", "Within-arm summaries", "Between-arm effects", "Within-arm summaries", "Between-arm effects"], "multi": false}, {"section": "Estimand", "subsection": "Link to outcome", "status": "new", "feature": "Linked outcome assessment name", "ontology": "hasLinkedOutcomeAssessmentName", "question": "Which outcome assessment does this estimand use?", "guidance": "Suggested dropdown from 'Assessment scenario' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Write the outcome assessment name from the outcome definition section. This is only needed when the spreadsheet contains more than one outcome assessment. It links the estimand to the outcome without repeating the whole outcome definition.", "justification": "An estimand can only be interpreted if the outcome it uses is clear.", "input": "combo", "list": "Assessment scenario", "examples": ["Russell Standard tobacco abstinence; 4-week;clinical; self-report only", "Russell Standard tobacco abstinence; 26-week;research; biochemically verified", "CO-verified tobacco smoking abstinence weeks 9-12 from start of treatment", "Self-reported tobacco smoking abstinence weeks 2-4 from target quit date", "Self-reported tobacco smoking abstinence weeks 25-26 from randomisation"], "multi": false}, {"section": "Estimand", "subsection": "Target population", "status": "new", "feature": "Target population for estimand", "ontology": "hasEstimandTargetPopulation", "question": "Who is the target quantity intended to describe?", "guidance": "Suggested dropdown from 'Participants included' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Describe the people the estimand is about, using plain language. For example: all people randomised; all people offered the service; all participants who set a quit date; all people who started treatment. This is about the underlying target question, not necessarily who ended up with complete data.", "justification": "The target population is part of the estimand and may differ from the set of people included in the statistical analysis.", "input": "combo", "list": "Participants included", "examples": ["All people offered the service", "All participants who set a target quit date", "All randomised participants", "All people who set a target quit date", "All randomised participants"], "multi": false}, {"section": "Estimand", "subsection": "Summary/effect measure", "status": "new", "feature": "Summary or effect measure for estimand", "ontology": "hasEstimandSummaryOrEffectMeasure", "question": "What summary or effect measure is the target quantity?", "guidance": "Suggested dropdown from 'Summary/effect measure' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "For within-arm summaries, write the summary such as proportion abstinent, abstinence rate, mean, median, or cumulative incidence. For between-arm effects, write the effect measure such as risk difference, risk ratio, odds ratio, mean difference, hazard ratio, or ratio of rates.", "justification": "The same outcome can lead to different target quantities depending on whether it is summarised within one arm or compared between arms.", "input": "combo", "list": "Summary/effect measure", "examples": ["Proportion abstinent", "Proportion abstinent", "Odds ratio", "Proportion abstinent", "Risk difference"], "multi": false}, {"section": "Estimand", "subsection": "Post-baseline events", "status": "new", "feature": "Post-baseline events that need a rule for the estimand", "ontology": "hasPostBaselineEventsRequiringEstimandRule", "question": "Which events after allocation or intervention start could change how the outcome should be interpreted or counted?", "guidance": "Free text. No dropdown is used.", "clarification": "List events that need an explicit rule because the same observed outcome may not mean the same thing after the event. Examples include death, withdrawal, stopping the study medication, switching treatment, using rescue treatment, using non-study stop-smoking support, pregnancy, moving away, or not providing a biochemical sample. Use plain language and leave blank if no such events are relevant.", "justification": "This tells the reader which post-baseline events have been considered when defining the target quantity. It does not yet say how people are counted after those events; that is captured in the next row.", "input": "freetext", "list": null, "examples": ["Death; withdrawal from service", "Death; inability to provide biochemical sample", "Stopping study medication; use of non-study cessation treatment; death", "Withdrawal from service", "Use of non-study cessation support; withdrawal; death"], "multi": false}, {"section": "Estimand", "subsection": "Post-baseline events", "status": "new", "feature": "Rule for counting people after post-baseline events in the estimand", "ontology": "hasPostBaselineEventCountingRuleInEstimand", "question": "For each event listed above, how are people with that event counted in the target quantity?", "guidance": "Suggested dropdown from 'Post-baseline event handling' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Describe the rule in ordinary language. For example: people who die are counted as not abstinent; people who stop medication are counted using their observed outcome; people who use extra stop-smoking support are still counted using their observed outcome; people who switch treatment are only counted up to the switch; people who do not provide a biochemical sample are counted as not verified; or the target is what would have happened if rescue treatment had not been used. This is about the underlying target quantity, not the statistical model.", "justification": "This makes “dealt with” explicit: it records whether people are counted using observed outcomes, counted as not abstinent, counted only up to the event, handled as a hypothetical scenario, or handled in some other specified way.", "input": "combo", "list": "Post-baseline event handling", "examples": ["Deaths counted as not abstinent; withdrawals counted using missing-data rule", "Deaths counted as not abstinent; no sample counted as not confirmed", "Use observed outcome regardless of stopping medication or additional support; deaths counted as not abstinent", "Withdrawals counted using missing-data rule", "Observed outcome used regardless of non-study support; deaths counted as not abstinent"], "multi": false}, {"section": "Analysis", "subsection": "Analysis set", "status": "old", "feature": "Outcome assessment participants included in analysis", "ontology": "hasOutcomeAssessmentAnalysisParticipantsIncluded", "question": "What participants are included in the analysis?", "guidance": "Suggested dropdown from 'Participants included' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Specify whether the analysis includes all participants who were randomised, only those who initiated a quit attempt, or only those for whom data are available.", "justification": "It is essential to make clear who is included in the analysis as it can make a substantial different to the outcome reported.", "input": "combo", "list": "Participants included", "examples": ["All participants agreed to the intervention/treatment", "All participants who were randomised to a study group", "All participants who were randomised to a study group", "All participants who set a quit date", "All participants who were randomised to a study group"], "multi": false}, {"section": "Analysis", "subsection": "Unit and clustering", "status": "old", "feature": "Outcome assessment unit of analysis", "ontology": "hasOutcomeAssessmentUnitOfAnalysis", "question": "Is the unit of analysis for the statistics a single person or a 'cluster' or group of people?", "guidance": "Suggested dropdown from 'Unit of analysis' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Choose 'Individual' when the analysis is at the participant level (including cluster-randomised trials that are analysed with models that account for clustering, e.g., mixed-effects or GEE). Choose \"cluster\" when the analysis uses cluster-level summaries (e.g., each cluster contributes a single proportion abstinent and inference is made across clusters).", "justification": "Clarifies whether the outcome represents the proportion across all individuals or the mean of cluster-level proportions. For example, if one clinic has 10 participants and another has 100, an analysis averaging cluster-level proportions equally gives both clinics the same weight, whereas an individual-level analysis weights the larger clinic more heavily. Distinguishing this ensures the outcome is interpreted and compared appropriately across studies.", "input": "combo", "list": "Unit of analysis", "examples": ["Inidividual", "Individual", "Individual", "Individual", "Individual"], "multi": false}, {"section": "Analysis", "subsection": "Unit and clustering", "status": "old", "feature": "Outcome assessment cluster weighting", "ontology": "hasOutcomeAssessmentClusterWeighting", "question": "If the unit of analysis is a cluster, what is the weighting used when calculating the cluster values?", "guidance": "Suggested dropdown from 'Cluster weighting' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "This only applied if 'cluster' was selected. Indicate whether cluster values are weighted by cluster size or equally weighted.", "justification": "The weighting changes the meaning of the cluster values.", "input": "combo", "list": "Cluster weighting", "examples": ["Not applicable", "Not applicable", "Not applicable", "Not applicable", "Not applicable"], "multi": false}, {"section": "Analysis", "subsection": "Missing data", "status": "old", "feature": "Missing data handling", "ontology": "hasMissingDataHandling", "question": "What approach is used to handle missing data?", "guidance": "Suggested dropdown from 'Missing value handling' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Select the missing value imputation method from the drop-down list or write the name of the method.", "justification": "The method of missing value imputation can make a substantial difference to the reported abstinence rate and must be clearly specified. The most commonly used method is 'missing=not abstinent' but in many circumstances this is likely to underestimate abstinence rates.", "input": "combo", "list": "Missing value handling", "examples": ["Missing=not abstinent", "Missing=not abstinent", "Missing=not abstinent at final follow-up. Missing intermediate self-reports before week 12 were imputed via a backward carry method. ", "Missing=not abstinent at final follow-up. Missing intermediate self-reports before week 12 were imputed via a backward carry method. ", "Missing=not abstinent"], "multi": false}, {"section": "Analysis", "subsection": "Estimation method", "status": "new", "feature": "Estimation model or method", "ontology": "hasEstimationModelOrMethod", "question": "What model or method is used to compute the summary or effect estimate?", "guidance": "Suggested dropdown from 'Estimation model/method' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Write the method in plain language, for example: unadjusted proportion; difference in proportions; logistic regression; modified Poisson or log-binomial regression; linear regression; mixed-effects model; GEE; survival model; Bayesian model. You do not need to report the numerical estimate here.", "justification": "This separates the estimand, which is the target quantity, from the analysis method used to estimate it.", "input": "combo", "list": "Estimation model/method", "examples": ["Unadjusted proportion", "Unadjusted proportion", "Logistic regression", "Unadjusted proportion", "Logistic regression"], "multi": false}, {"section": "Analysis", "subsection": "Estimation method", "status": "new", "feature": "Covariates or adjustment variables used in estimation", "ontology": "hasEstimationAdjustmentVariables", "question": "Which variables, if any, are adjusted for in the estimation method?", "guidance": "Free text. No dropdown is used.", "clarification": "List any baseline covariates, stratification variables, site indicators, or clustering variables included in the model or estimator. If the estimate is unadjusted, write “None”.", "justification": "Adjusted and unadjusted estimates can answer the same estimand but use different estimation methods.", "input": "freetext", "list": null, "examples": ["None", "None", "Baseline cigarettes per day; site", "None", "Baseline smoking heaviness; recruitment source"], "multi": false}, {"section": "Analysis", "subsection": "Uncertainty estimation", "status": "new", "feature": "Standard error or confidence interval method", "ontology": "hasStandardErrorOrConfidenceIntervalMethod", "question": "How are standard errors or confidence intervals obtained?", "guidance": "Suggested dropdown from 'SE/CI method' list; free text allowed. If none fits, type 'Other: ...'.", "clarification": "Write the method, not the numerical confidence interval. Examples include model-based standard errors, robust/sandwich standard errors, cluster-robust standard errors, bootstrap, permutation or randomisation-based method, Bayesian credible interval, or not reported.", "justification": "This records how uncertainty is estimated without requiring users to enter the effect estimate or confidence interval values reported in the paper.", "input": "combo", "list": "SE/CI method", "examples": ["Not reported", "Model-based standard errors", "Model-based standard errors", "Not reported", "Robust/sandwich standard errors"], "multi": false}], "lists": {"Assessment scenario": ["Russell Standard tobacco abstinence; 4-week;clinical; self-report only", "Russell Standard tobacco abstinence; 12-week;clinical; self-report only", "Russell Standard tobacco abstinence; 26-week;clinical; self-report only", "Russell Standard tobacco abstinence; 52-week;clinical; self-report only", "Russell Standard tobacco abstinence; 4-week;clinical; biochemically verified", "Russell Standard tobacco abstinence; 12-week;clinical; biochemically verified", "Russell Standard tobacco abstinence; 26-week;clinical; biochemically verified", "Russell Standard tobacco abstinence; 52-week;clinical; biochemically verified", "Russell Standard tobacco abstinence; 4-week;research; self-report only", "Russell Standard tobacco abstinence; 12-week;research; self-report only", "Russell Standard tobacco abstinence; 26-week;research; self-report only", "Russell Standard tobacco abstinence; 52-week;research; self-report only", "Russell Standard tobacco abstinence; 4-week;research; biochemically verified", "Russell Standard tobacco abstinence; 12-week;research; biochemically verified", "Russell Standard tobacco abstinence; 26-week;research; biochemically verified", "Russell Standard tobacco abstinence; 52-week;research; biochemically verified", "Not reported", "Unclear", "Other: [type details]"], "Behaviour list": ["Cigarette smoking (including hand-rolled)", "Tobacco smoking", "Tobacco use", "Tobacco or e-cigarette use", "Tobacco or nicotine use", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Temporal reference": ["Target quit date", "Point of first contact", "Start of treatment", "Time of consenting", "Assignment to study group", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Contact modality": ["Face-to-face", "Email", "Text message", "Telephone", "Online form or checkbox", "Letter", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Communication type": ["Oral", "Written", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Response format": ["Fixed-option", "Open", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Confirmation": ["No confirmation", "Expired-air CO", "Saliva cotinine", "Urine nicotine metabolite", "Report by another person", "Other", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Missing value handling": ["Missing=missing", "Missing=not abstinent", "Multiple imputation", "Multiple imputation with delta adjustment", "Inverse probability of missingness weighting", "Last value carried forward", "Missing=not abstinent at final follow-up. Missing intermediate self-reports before week 12 were imputed via a backward carry method.", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Participant inclusion": ["Intent-to-treat", "Modified intent-to-treat", "Complete case", "Per protocol", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Yes/no": ["Yes", "No", "Not applicable", "Not specified", "Not reported", "Unclear"], "Maximum of lapses allowed": ["0", "5", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Lapse type": ["Cigarette", "Session of use", "Day of use", "Other", "Not applicable", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Sample": ["All respondents", "All respondents claiming abstinence", "A sample of respondents claiming abstinence", "Not applicable", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Additional lapse rules": ["No lapses within 7 days of the outcome assessment", "No more than two consecutive days of lapses", "Not applicable", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Participants included": ["All participants who were randomised to a study group", "All participants agreed to the intervention/treatment", "All participants who received at least some part of the intervention/treatment", "All participants who completed the intervention/treatment", "All participants who set a quit date", "All participants who began their quit attempt", "All participants with complete follow-up data for this analysis", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Cluster weighting": ["Weighted by cluster size", "All clusters weighted equally", "Not applicable", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Unit of analysis": ["Individual", "Centre", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Outcome role": ["Primary outcome", "Secondary outcome", "Exploratory outcome", "Process outcome", "Harms/safety outcome", "Not specified", "Other", "Not reported", "Unclear", "Other: [type details]"], "Estimand aim type": ["Between-arm effects", "Within-arm summaries", "Both between-arm effects and within-arm summaries", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Summary/effect measure": ["Proportion abstinent / abstinence rate", "Risk difference", "Risk ratio", "Odds ratio", "Mean", "Mean difference", "Median", "Hazard ratio", "Rate ratio", "Other", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Post-baseline event handling": ["Use observed outcome regardless of event", "Count as not abstinent / negative outcome", "Estimate what would have happened if event had not occurred", "Only use outcome information up to the event", "Restrict to people who would not have the event", "Other", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Estimation model/method": ["Unadjusted proportion or rate", "Difference in proportions", "Logistic regression", "Modified Poisson or log-binomial regression", "Linear regression", "Mixed-effects model", "GEE", "Survival model", "Bayesian model", "Other", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "SE/CI method": ["Model-based standard errors", "Robust/sandwich standard errors", "Cluster-robust standard errors", "Bootstrap", "Permutation/randomisation-based method", "Bayesian credible interval", "Not reported", "Other", "Not specified", "Unclear", "Other: [type details]"], "Incentive offered": ["Yes", "No", "Not applicable", "Not specified", "Not reported", "Unclear"], "Incentive type": ["Cash", "Voucher/gift card", "Prize draw", "Travel reimbursement", "Biochemical sample return incentive", "Other", "Not applicable", "Not specified", "Not reported", "Unclear", "Other: [type details]"], "Incentive timing": ["Before response", "After response", "After biochemical sample returned", "At follow-up visit", "Not applicable", "Not specified", "Other", "Not reported", "Unclear", "Other: [type details]"]}, "example_labels": ["Example 1: RS clinical 4", "Example 2: RS research 26", "Example 3: EAGLES Trial Primary outcome", "Example 4: Everyone Health RS clinical 4w", "Example 5: Smoke Free App RCT primary outcome"]};
+const state = {};              // ontology -> value
+const includedModules = new Set(MODEL.sections_order);  // which sections are active
+const setRecords = [];         // saved assessments
+const NAME_PROP = 'hasOutcomeAssessmentName';
+const slug = s => 'dl-'+s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- Build shared datalists ---------- */
+(function(){
+  const host = document.getElementById('datalists-host').parentNode;
+  const frag = document.createDocumentFragment();
+  for(const [name,vals] of Object.entries(MODEL.lists)){
+    const dl = document.createElement('datalist'); dl.id = slug(name);
+    for(const v of vals){ const o=document.createElement('option'); o.value=v; dl.appendChild(o); }
+    frag.appendChild(dl);
+  }
+  host.appendChild(frag);
+})();
+
+/* ---------- Render form ---------- */
+const secNums = {}; MODEL.sections_order.forEach((s,i)=>secNums[s]=String(i+1).padStart(2,'0'));
+const formEl = document.getElementById('form');
+
+MODEL.sections_order.forEach(section=>{
+  const items = MODEL.items.filter(i=>i.section===section);
+  const secEl = document.createElement('section');
+  secEl.className='section'; secEl.id = slug('sec-'+section);
+  secEl.innerHTML = `<div class="section-head"><span class="num">${secNums[section]}</span>
+     <div><h2>${esc(section)}</h2><p class="section-desc">${esc(MODEL.section_desc[section]||'')}</p></div></div>`;
+
+  const subs=[]; items.forEach(i=>{ if(!subs.includes(i.subsection)) subs.push(i.subsection); });
+  subs.forEach(sub=>{
+    const subEl=document.createElement('div'); subEl.className='sub';
+    subEl.innerHTML = `<div class="sub-label">${esc(sub)}</div>`;
+    items.filter(i=>i.subsection===sub).forEach(it=> subEl.appendChild(renderItem(it)));
+    secEl.appendChild(subEl);
+  });
+  formEl.appendChild(secEl);
+});
+
+function renderItem(it){
+  const el=document.createElement('div'); el.className='item'; el.dataset.section=it.section;
+  const badge = it.status==='new' ? '<span class="badge">new</span>' : '';
+  const onto = it.ontology? `<span class="onto mono" title="Plain-language label: ${esc(it.feature)}">${esc(it.ontology)}</span>`:'';
+  let inputHTML='';
+  if(it.input==='combo' && it.multi){
+    inputHTML = `<div class="tokenfield" data-onto="${esc(it.ontology)}">
+        <input type="text" class="tf-input" list="${slug(it.list)}" autocomplete="off" placeholder="Select or type, then press Enter…">
+      </div>
+      <div class="hint"><span class="k">◆</span> Add several — press Enter after each; suggestions from “${esc(it.list)}”, free text allowed</div>`;
+  } else if(it.input==='combo'){
+    inputHTML = `<input type="text" list="${slug(it.list)}" data-onto="${esc(it.ontology)}" autocomplete="off" placeholder="Select or type…">
+      <div class="hint"><span class="k">◆</span> Suggestions from “${esc(it.list)}” — free text allowed</div>`;
+  } else if(it.input==='numeric'){
+    inputHTML = `<div class="numwrap"><input type="text" inputmode="numeric" data-onto="${esc(it.ontology)}" autocomplete="off" placeholder="e.g. 28  (or 7; 7 for multiple)"></div>
+      <div class="hint">Enter a number in days/units; separate multiple values with “;”</div>`;
+  } else {
+    inputHTML = `<textarea data-onto="${esc(it.ontology)}" placeholder="Type your answer…"></textarea>`;
+  }
+  const why = it.justification? `<div class="why"><b>Why it matters</b>${esc(it.justification)}</div>`:'';
+  el.innerHTML = `
+    <div class="item-top">
+      <div><div class="feat">${esc(it.feature)} ${badge} ${onto}</div><div class="q">${esc(it.question)}</div></div>
+    </div>
+    <div class="field">${inputHTML}</div>
+    <details class="help"><summary>Guidance</summary>
+      <div class="help-body">${esc(it.clarification||it.guidance||'')}${why}</div></details>`;
+  return el;
+}
+
+/* ---------- State wiring ---------- */
+formEl.addEventListener('input', e=>{
+  const t=e.target; if(!t.dataset.onto) return;
+  state[t.dataset.onto]=t.value;
+  t.closest('.item').classList.toggle('filled', t.value.trim()!=='');
+  updateProgress();
+});
+
+/* ---------- Multi-select token fields ---------- */
+function tokensOf(tf){ return [...tf.querySelectorAll('.chip')].map(c=>c.dataset.val); }
+function makeChip(v){
+  const chip=document.createElement('span'); chip.className='chip'; chip.dataset.val=v;
+  chip.innerHTML=`${esc(v)}<button type="button" aria-label="Remove ${esc(v)}">×</button>`; return chip;
+}
+function syncTokens(tf){
+  const val=tokensOf(tf).join('; '); state[tf.dataset.onto]=val;
+  tf.closest('.item').classList.toggle('filled', val.trim()!=='');
+  updateProgress();
+}
+function addToken(tf, text){
+  const input=tf.querySelector('.tf-input');
+  const parts=(text||'').split(/\s*;\s*/).map(s=>s.trim()).filter(Boolean);
+  const have=new Set(tokensOf(tf).map(v=>v.toLowerCase()));
+  parts.forEach(p=>{ if(have.has(p.toLowerCase())) return; have.add(p.toLowerCase()); tf.insertBefore(makeChip(p), input); });
+  input.value=''; syncTokens(tf);
+}
+function setTokens(tf, value){
+  tf.querySelectorAll('.chip').forEach(c=>c.remove());
+  const input=tf.querySelector('.tf-input'); input.value='';
+  (value||'').split(/\s*;\s*/).map(s=>s.trim()).filter(Boolean).forEach(v=> tf.insertBefore(makeChip(v), input));
+}
+formEl.addEventListener('keydown', e=>{
+  const inp=e.target; if(!inp.classList||!inp.classList.contains('tf-input')) return;
+  const tf=inp.closest('.tokenfield');
+  if(e.key==='Enter'||e.key===';'||e.key===','){ e.preventDefault(); if(inp.value.trim()) addToken(tf, inp.value); }
+  else if(e.key==='Backspace' && inp.value===''){ const c=tf.querySelectorAll('.chip'); if(c.length){ c[c.length-1].remove(); syncTokens(tf); } }
+});
+formEl.addEventListener('focusout', e=>{
+  const inp=e.target; if(!inp.classList||!inp.classList.contains('tf-input')) return;
+  if(inp.value.trim()) addToken(inp.closest('.tokenfield'), inp.value);
+});
+formEl.addEventListener('click', e=>{
+  if(e.target.matches('.chip button')){ const tf=e.target.closest('.tokenfield'); e.target.closest('.chip').remove(); syncTokens(tf); }
+  else if(e.target.classList.contains('tokenfield')){ e.target.querySelector('.tf-input').focus(); }
+});
+
+/* ---------- Sidebar spine + progress ---------- */
+const spine=document.getElementById('spine');
+MODEL.sections_order.forEach(section=>{
+  const li=document.createElement('li');
+  li.innerHTML=`<a href="#${slug('sec-'+section)}" data-section="${esc(section)}">
+     <span class="ring" id="ring-${slug(section)}"></span>
+     <span class="snum mono">${secNums[section]}</span>${esc(section)}</a>`;
+  spine.appendChild(li);
+});
+function updateProgress(){
+  let done=0, tot=0;
+  MODEL.sections_order.forEach(section=>{
+    const included=includedModules.has(section);
+    const its=MODEL.items.filter(i=>i.section===section);
+    const filled=its.filter(i=>(state[i.ontology]||'').trim()!=='').length;
+    if(included){ done+=filled; tot+=its.length; }
+    const ring=document.getElementById('ring-'+slug(section));
+    if(ring){ ring.style.setProperty('--p', Math.round(filled/its.length*100)); ring.classList.toggle('done', filled===its.length); }
+  });
+  document.getElementById('pDone').textContent=done;
+  document.getElementById('pTotal').textContent=tot;
+  document.getElementById('pbarFill').style.width=(tot? done/tot*100 : 0)+'%';
+}
+
+/* ---------- Module selector ---------- */
+function renderModules(){
+  const row=document.getElementById('modRow'); row.innerHTML='';
+  MODEL.sections_order.forEach(sec=>{
+    const b=document.createElement('button');
+    b.className='modchip'; b.dataset.mod=sec; b.setAttribute('aria-pressed', includedModules.has(sec));
+    b.innerHTML=`<span class="box"></span>${esc(sec)}`;
+    row.appendChild(b);
+  });
+}
+function applyVisibility(){
+  MODEL.sections_order.forEach(sec=>{
+    const on=includedModules.has(sec);
+    const secEl=document.getElementById(slug('sec-'+sec)); if(secEl) secEl.style.display=on?'':'none';
+    const a=document.querySelector(`.spine a[data-section="${cssEscape(sec)}"]`); if(a) a.parentElement.style.display=on?'':'none';
+  });
+  updateProgress();
+}
+function refreshModules(){ renderModules(); applyVisibility(); }   // for programmatic changes (import / load)
+document.getElementById('modRow').addEventListener('click', e=>{
+  const b=e.target.closest('.modchip'); if(!b) return;
+  const sec=b.dataset.mod;
+  if(includedModules.has(sec)){
+    if(includedModules.size===1){ toast('Keep at least one module'); return; }
+    includedModules.delete(sec);
+  } else includedModules.add(sec);
+  b.setAttribute('aria-pressed', includedModules.has(sec));
+  applyVisibility();
+});
+renderModules(); applyVisibility();
+
+/* scroll-spy (progressive enhancement) */
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(en=>{ if(en.isIntersecting){
+      document.querySelectorAll('.spine a').forEach(a=>a.classList.remove('active'));
+      const a=document.querySelector(`.spine a[href="#${en.target.id}"]`); if(a)a.classList.add('active');
+    }});
+  },{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('.section').forEach(s=>io.observe(s));
+}
+
+/* ---------- Examples ---------- */
+const exSel=document.getElementById('exSelect');
+MODEL.example_labels.forEach((lab,idx)=>{
+  const clean=lab.replace(/^Example \d+:\s*/,'');
+  const o=document.createElement('option'); o.value=idx; o.textContent='Example: '+clean; exSel.appendChild(o);
+});
+exSel.addEventListener('change',()=>{
+  const idx=exSel.value; if(idx==='') return;
+  MODEL.items.forEach(it=>{
+    const v=(it.examples[idx]!=null?it.examples[idx]:'');
+    setField(it.ontology, v);
+  });
+  exSel.value=''; updateProgress(); toast('Example loaded — every field populated');
+});
+
+function setField(onto,val){
+  val=(val==null?'':val);
+  state[onto]=val;
+  const el=formEl.querySelector(`[data-onto="${cssEscape(onto)}"]`);
+  if(!el) return;
+  if(el.classList.contains('tokenfield')){ setTokens(el, val); }
+  else { el.value=val; }
+  const item=el.closest('.item'); if(item) item.classList.toggle('filled', String(val).trim()!=='');
+}
+function cssEscape(s){ return s.replace(/"/g,'\\"'); }
+
+/* ---------- Clear ---------- */
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  if(!confirm('Clear all answers in the current form?')) return;
+  MODEL.items.forEach(it=>setField(it.ontology,''));
+  updateProgress(); toast('Form cleared');
+});
+
+/* ---------- CSV / JSON helpers ---------- */
+function currentName(){ return (state[NAME_PROP]||'').trim() || 'Unnamed assessment'; }
+function fileStub(){ return currentName().replace(/[^a-z0-9]+/gi,'_').replace(/^_|_$/g,'').slice(0,60) || 'CEASE-TN'; }
+
+function buildRows(){ // one object per item, included modules only
+  return MODEL.items.filter(it=>includedModules.has(it.section)).map(it=>({
+    Section:it.section, Subsection:it.subsection, Feature:it.feature,
+    OntologyProperty:it.ontology, Question:it.question,
+    Response:(state[it.ontology]||'')
+  }));
+}
+function toCSV(rows, extraCol){
+  const cols = extraCol ? ['Assessment', ...Object.keys(rows[0]).filter(k=>k!=='Assessment')] : Object.keys(rows[0]);
+  const q=v=>{ v=(v==null?'':String(v)); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const lines=[cols.join(',')];
+  rows.forEach(r=>lines.push(cols.map(c=>q(r[c])).join(',')));
+  return '\ufeff'+lines.join('\r\n');
+}
+function currentJSON(){
+  const data={}, labels={};
+  const items = MODEL.items.filter(it=>includedModules.has(it.section)).map(it=>{
+    const response = (state[it.ontology]||'');
+    data[it.ontology]=response; labels[it.ontology]=it.feature;
+    return { section:it.section, subsection:it.subsection,
+             label:it.feature,                 // plain-language label
+             ontologyProperty:it.ontology, question:it.question, response };
+  });
+  return {
+    standard:'CEASE-TN', specVersion:'5.0', generated:new Date().toISOString(),
+    assessmentName:currentName(),
+    modulesIncluded:MODEL.sections_order.filter(s=>includedModules.has(s)),
+    items,                 // human-readable, ordered, each with its plain-language label
+    labels,                // plain-language label for every ontology property
+    data                   // flat machine-readable map keyed by ontology property
+  };
+}
+function download(name, text, mime){
+  const blob=new Blob([text],{type:mime}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+document.getElementById('csvBtn').addEventListener('click',()=>{
+  download(fileStub()+'.csv', toCSV(buildRows()), 'text/csv'); toast('CSV downloaded');
+});
+document.getElementById('jsonBtn').addEventListener('click',()=>{
+  download(fileStub()+'.json', JSON.stringify(currentJSON(),null,2), 'application/json'); toast('JSON downloaded');
+});
+
+/* ---------- Assessment set ---------- */
+const setListEl=document.getElementById('setList'), setEmpty=document.getElementById('setEmpty'), setActions=document.getElementById('setActions');
+document.getElementById('addSetBtn').addEventListener('click',()=>{
+  const snapshot={};
+  MODEL.items.forEach(it=>{ if(includedModules.has(it.section)) snapshot[it.ontology]=(state[it.ontology]||''); });
+  setRecords.push({name:currentName(), data:snapshot, modules:MODEL.sections_order.filter(s=>includedModules.has(s))});
+  renderSet(); toast('Added “'+currentName()+'” to the set');
+});
+function renderSet(){
+  setListEl.innerHTML='';
+  setRecords.forEach((rec,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span title="${esc(rec.name)}">${esc(rec.name)}</span>
+      <button data-load="${i}" title="Load into form">Load</button>
+      <button data-del="${i}" title="Remove">✕</button>`;
+    setListEl.appendChild(li);
+  });
+  setEmpty.style.display=setRecords.length?'none':'block';
+  setActions.style.display=setRecords.length?'flex':'none';
+}
+setListEl.addEventListener('click',e=>{
+  const load=e.target.dataset.load, del=e.target.dataset.del;
+  if(load!==undefined){ const rec=setRecords[load];
+    if(rec.modules){ includedModules.clear(); rec.modules.forEach(m=>includedModules.add(m)); refreshModules(); }
+    MODEL.items.forEach(it=>setField(it.ontology, rec.data[it.ontology]||'')); updateProgress(); toast('Loaded “'+rec.name+'”'); }
+  if(del!==undefined){ setRecords.splice(del,1); renderSet(); }
+});
+function setRowsAll(){
+  const rows=[];
+  setRecords.forEach(rec=>{
+    const mods=new Set(rec.modules||MODEL.sections_order);
+    MODEL.items.forEach(it=>{ if(!mods.has(it.section)) return;
+      rows.push({Assessment:rec.name, Section:it.section, Subsection:it.subsection,
+      Feature:it.feature, OntologyProperty:it.ontology, Question:it.question, Response:rec.data[it.ontology]||''}); });
+  });
+  return rows;
+}
+document.getElementById('csvAllBtn').addEventListener('click',()=>{
+  if(!setRecords.length) return;
+  download('CEASE-TN_set.csv', toCSV(setRowsAll(), true), 'text/csv'); toast('Set exported as CSV');
+});
+document.getElementById('jsonAllBtn').addEventListener('click',()=>{
+  if(!setRecords.length) return;
+  const labels={}; MODEL.items.forEach(it=> labels[it.ontology]=it.feature);
+  const out={standard:'CEASE-TN', specVersion:'5.0', generated:new Date().toISOString(),
+    labels,   // shared plain-language labels for every ontology property
+    assessments:setRecords.map(rec=>({assessmentName:rec.name, modulesIncluded:rec.modules||MODEL.sections_order, data:rec.data}))};
+  download('CEASE-TN_set.json', JSON.stringify(out,null,2), 'application/json'); toast('Set exported as JSON');
+});
+
+/* ---------- Import ---------- */
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',ev=>{
+  const f=ev.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const j=JSON.parse(r.result);
+      if(j.assessments && Array.isArray(j.assessments)){
+        j.assessments.forEach(a=> setRecords.push({name:a.assessmentName||'Imported', data:a.data||{}}));
+        renderSet();
+        if(j.assessments[0]){ const d=j.assessments[0].data||{}; MODEL.items.forEach(it=>setField(it.ontology,d[it.ontology]||'')); }
+        toast('Imported '+j.assessments.length+' assessment(s)');
+      } else {
+        const d=j.data|| j;
+        if(Array.isArray(j.modulesIncluded)){ includedModules.clear(); j.modulesIncluded.forEach(m=>includedModules.add(m)); refreshModules(); }
+        MODEL.items.forEach(it=>setField(it.ontology, d[it.ontology]!=null?d[it.ontology]:''));
+        toast('Assessment imported into form');
+      }
+      updateProgress();
+    }catch(err){ toast('Could not read that file — is it CEASE-TN JSON?'); }
+    ev.target.value='';
+  };
+  r.readAsText(f);
+});
+
+/* ---------- Toast ---------- */
+let tT; function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(tT); tT=setTimeout(()=>t.classList.remove('show'),2200); }
+</script>
+</body>
+</html>
