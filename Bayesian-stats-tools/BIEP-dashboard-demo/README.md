@@ -9,6 +9,7 @@ All the data are invented. The demonstration uses the outcome questions and inte
 ## Files
 
 - `index.html`: the dashboard. It is a single file with the dummy data built in, and runs in any modern browser without installation.
+- `BIEP_dummy_data.zip`: the five CSV files below in one download: https://robertjwest.github.io/Unlocking-Behaviour-Change/Bayesian-stats-tools/BIEP-dashboard-demo/BIEP_dummy_data.zip
 - `dummy-data/`: the same dummy data as CSV files, laid out as in the input data specification (v4):
   - `recipients.csv`: one row per recipient
   - `exposure.csv`: one row per intervention spell
