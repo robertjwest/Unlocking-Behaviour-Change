@@ -14,8 +14,12 @@ All the data are invented. The demonstration uses the outcome questions and inte
   - `recipients.csv`: one row per recipient
   - `exposure.csv`: one row per intervention spell
   - `outcomes.csv`: one row per recipient per assessment
-  - `config.csv`: the configuration table, defining every variable, benchmark and missing-data rule
+  - `config.csv`: the configuration table, defining every variable, its target (`benchmark`), minimum acceptable level (`floor`), `tolerance` and missing-data rule, plus setting rows for the probability cut-offs
   - `schedule.csv`: the assessment schedule
+
+## How outcomes are judged
+
+Each outcome has a target and, optionally, a minimum acceptable level (floor) and a tolerance. The dashboard works out the probability that the true value is at or above each line (less the tolerance). An outcome is labelled **Meeting target**, **Above minimum**, **Not yet clear** or **Below minimum**. Individuals are flagged **Review** when their average probability of being at or above the minimum path is low, and **On track** only when their average probability of being on the target path is high. The cut-offs are set in the configuration table. Details are in the dashboard's *Method and options* tab.
 
 ## Using your own data
 
