@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smoking and vaping harm tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE work: a public-health decision tool, exact and calm
+   IDEA a pharmacy label in pale green: the dose that tips benefit into harm, printed in flat blocks
+   PICTURE live line of net population harm against the share of new vapers who are switching smokers, crossing zero at break-even
+   COLOUR white ground, black ink, emerald block for benefit and vaping, rose for harm, charcoal for smoking
+   TYPE Schibsted Grotesk 800 for figures and titles, Schibsted Grotesk 400/500 for text
+   LAYOUT laptop: emerald title strip, then inputs left and result right; phone: title, result, inputs */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#04140d);--ink:light-dark(#101418,#e8f2ec);--mute:light-dark(#4d565e,#a8bcb2);--rule:light-dark(#d9dee2,#1f3a2e);--panel:light-dark(#f4f7f5,#0b2219);--em:light-dark(#00a86b,#2fd08f);--emt:light-dark(#d9f4e8,#0e3826);--rose:light-dark(#c42a5c,#ff7aa2);--roset:light-dark(#ffe3eb,#3a1422);--smk:light-dark(#3d3a36,#c9c2b8);--strip:light-dark(#e6f6ee,#0e3826);--stripink:light-dark(#0b1a12,#eafff4)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "Schibsted Grotesk",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,3vw,40px) max(4vw,16px)}
+.strip{background:var(--strip);color:var(--stripink)}
+.strip h1{font-size:clamp(30px,4vw,46px);line-height:1.05;letter-spacing:-.02em;margin:0 0 6px;font-weight:800;text-wrap:balance}
+.strip p{margin:0;max-width:68ch;font-size:17px}
+.strip .q{font-size:22px;font-weight:700;margin:0 0 6px;color:var(--em)}
+.strip{border-bottom:1px solid var(--rule)}
+.wrap{max-width:1240px;margin:0 auto}
+.main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:28px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:18px}
+.panel+.panel{margin-top:16px}
+h2{font-size:20px;margin:0 0 4px;font-weight:700}
+.hint{color:var(--mute);font-size:14px;margin:0 0 12px}
+table{border-collapse:collapse;width:100%}
+th{font-size:13px;font-weight:500;color:var(--mute);text-align:right;padding:4px 4px 8px}
+th:first-child,td:first-child{text-align:left}
+td{padding:4px;border-top:1px solid var(--rule)}
+input[type=number]{width:100%;max-width:5.2em;font:inherit;font-size:16px;padding:8px 6px;border:1px solid var(--rule);border-radius:6px;background:var(--bg);color:var(--ink);text-align:right;min-height:44px}
+input:focus-visible,button:focus-visible{outline:3px solid var(--em);outline-offset:2px}
+td input{float:right}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--rule)}
+.row label{font-size:15px}
+.row small{display:block;color:var(--mute);font-size:13px}
+input[type=range]{width:100%;accent-color:var(--em);min-height:44px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+button{font:inherit;font-size:15px;min-height:44px;padding:8px 14px;border-radius:8px;border:1px solid var(--ink);background:var(--bg);color:var(--ink);cursor:pointer}
+button:hover{background:var(--panel)}
+.result{position:sticky;top:12px}
+.verdict{border-radius:10px;padding:18px 20px;margin-bottom:14px;background:var(--emt)}
+.verdict.bad{background:var(--roset)}
+.verdict .big{font-size:clamp(34px,5vw,56px);font-weight:800;line-height:1;letter-spacing:-.02em;white-space:nowrap}
+.verdict p{margin:6px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.kpi{border:1px solid var(--rule);border-radius:10px;padding:12px}
+.kpi b{display:block;font-size:28px;font-weight:800;line-height:1.1;white-space:nowrap}
+.kpi span{font-size:14px;color:var(--mute)}
+.fig{position:relative;min-height:320px;border:1px solid var(--rule);border-radius:10px}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+svg text{font:13px "Schibsted Grotesk",sans-serif;fill:var(--ink);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+.cap{font-size:14px;color:var(--mute);margin:8px 0 0}
+.bars{margin-top:18px}
+.bar{display:grid;grid-template-columns:8.5em minmax(0,1fr) 5.5em;gap:10px;align-items:center;font-size:14px;margin:6px 0}
+.track{height:16px;background:var(--panel);border-radius:4px;position:relative}
+.fill{height:100%;border-radius:4px}
+.bar .v{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sens td,.sens th{text-align:right;font-variant-numeric:tabular-nums}
+.sens td:first-child,.sens th:first-child{text-align:left}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(18em,1fr));gap:24px}
+.notes h2{margin-bottom:8px}
+.notes ul{margin:0;padding-left:1.2em}
+.notes li{margin-bottom:6px}
+a{color:var(--ink)}
+.warn{color:var(--rose);font-size:14px;margin:6px 0 0}
+.ev{margin-top:12px;border-top:1px solid var(--rule);padding-top:10px;font-size:14px}
+.ev summary{cursor:pointer;font-weight:500;font-size:15px;min-height:32px}
+.ev ul{padding-left:1.2em;margin:6px 0 0}
+.ev li{margin-bottom:6px}
+.ev p{margin:8px 0 0}
+@media(max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.result{position:static;order:-1}}
+@media(max-width:600px){.kpi b{font-size:22px}.kpi span{font-size:13px}.kpi{padding:10px}.bar{grid-template-columns:6.5em minmax(0,1fr) 4.8em}th,td{padding:4px 2px}}
+</style>
+</head>
+<body>
+<header class="band strip"><div class="wrap">
+<h1>Smoking and vaping population harm visualisation tool</h1>
+<p class="q">When does more vaping mean less harm?</p>
+<p>Set your own judgements of the harms of smoking, vaping and dual use. The model estimates the change in population harm when vaping rises, and how much of that rise must come from smokers switching for there to be a net public health benefit.</p>
+</div></header>
+
+<main class="band"><div class="wrap main">
+<section>
+  <div class="panel">
+    <h2>1. Harm per user</h2>
+    <p class="hint">Score each product on each harm, 0 to 100, with smoking as the anchor at 100. Weights set how much each harm counts.</p>
+    <table><thead><tr><th>Harm</th><th>Weight</th><th>Smoking</th><th>Dual use</th><th>Vaping</th></tr></thead>
+    <tbody id="harms"></tbody></table>
+  </div>
+  <div class="panel">
+    <h2>2. Current prevalence (adults, England)</h2>
+    <p class="hint">Defaults are approximate, from Smoking Toolkit Study estimates: smoking 13.8%, vaping 13.0%, about a third of vapers also smoke.</p>
+    <div id="prev"></div>
+  </div>
+  <div class="panel">
+    <h2>3. Scenario: vaping rises</h2>
+    <div class="row"><label for="dv">Rise in vaping prevalence<small>Percentage points</small></label><input type="number" id="dv" min="0.1" max="20" step="0.1"></div>
+    <p class="hint" style="margin-top:10px">Where do the new vapers come from? Shares are rescaled to total 100%.</p>
+    <div id="src"></div>
+    <div class="row"><label for="g">Never-smoker vapers who go on to smoke as well<small>% of new never-smoker vapers</small></label><input type="number" id="g" min="0" max="100" step="1"></div>
+    <p class="warn" id="srcwarn" hidden></p>
+    <details class="ev"><summary>What the evidence suggests about switchers</summary>
+    <p>The middle view assumes 20% of new vapers are smokers who would otherwise still smoke. Evidence from England points to roughly 15&ndash;30%:</p>
+    <ul>
+      <li>After the 2025 disposable vape ban, adult vaping was 5.2 points below the no-ban counterfactual by February 2026, while smoking was only 0.9 points higher (&minus;0.5 to +2.2): a ratio of about 0.17 for marginal vapers (<a href="https://www.medrxiv.org/content/10.64898/2026.06.09.26355241v1.full">Smoking Toolkit Study, preprint</a>).</li>
+      <li>Time-series analyses estimate that e-cigarettes have helped about 30,000&ndash;50,000 additional smokers a year to quit since they became popular (<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11190046/">2007&ndash;2022 analysis</a>), against about 2.2 million ex-smokers who vape (<a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11580220/">Jackson et al. 2024</a>). That suggests perhaps 20&ndash;30% of ex-smoker vapers would otherwise still smoke, before allowing for relapse, deaths and later quitting.</li>
+      <li>About one in ten ex-smokers who vape quit before 2011, when e-cigarettes became popular, so they belong in the &ldquo;would have quit anyway&rdquo; group.</li>
+      <li>None of these captures relapse prevention, which would push the true share up.</li>
+    </ul></details>
+  </div>
+  <div class="panel">
+    <h2>Presets</h2>
+    <p class="hint">Illustrative starting points, not estimates.</p>
+    <div class="presets"><button type="button" data-p="base">Middle view</button><button type="button" data-p="thr">Harm-reduction view</button><button type="button" data-p="sceptic">Sceptical view</button></div>
+  </div>
+</section>
+
+<section class="result" aria-live="polite">
+  <div class="verdict" id="verdict"><div class="big" id="vbig"></div><p id="vtext"></p></div>
+  <div class="kpis">
+    <div class="kpi"><b id="kv"></b><span>harm per vaper, % of a smoker</span></div>
+    <div class="kpi"><b id="kd"></b><span>harm per dual user, % of a smoker</span></div>
+    <div class="kpi"><b id="kb"></b><span>break-even share of new vapers who must be switching smokers</span></div>
+  </div>
+  <div class="fig"><svg id="chart" role="img" aria-label="Net change in population harm by share of new vapers who are smokers switching completely"></svg></div>
+  <p class="cap" id="chartcap"></p>
+  <div class="bars" id="bars"></div>
+</section>
+</div></main>
+
+<section class="band" style="padding-top:0"><div class="wrap notes">
+  <div>
+    <h2>How sensitive is break-even to vaping harm?</h2>
+    <p class="hint">Break-even share of switching smokers among new vapers, with your other settings held fixed and vaping's per-user harm set to each level.</p>
+    <table class="sens"><thead><tr><th>Vaping harm per user (% of smoking)</th><th>Break-even switcher share</th><th>Net change at your scenario</th></tr></thead><tbody id="sens"></tbody></table>
+  </div>
+  <div>
+    <h2>How the model works</h2>
+    <ul>
+      <li>Harm per user = weighted average of the four harm scores, so a smoker scores 100.</li>
+      <li>Population harm = adults × prevalence × harm per user, expressed as the number of exclusive smokers carrying the same total harm (smoking-equivalents).</li>
+      <li>Complete switchers move from smoking to vaping; new dual users add vaping to smoking; would-have-quit vapers and never-smokers add vaping harm, and some never-smokers also take up smoking.</li>
+      <li>In the simplest case (only switching and new uptake), a 1-point rise in vaping breaks even if smoking falls by at least the vaping/smoking harm ratio.</li>
+    </ul>
+  </div>
+  <div>
+    <h2>Main limitations</h2>
+    <ul>
+      <li>A steady-state comparison, not a forecast: deaths follow decades of use, and quitting and relapse are not modelled.</li>
+      <li>Scores are judgements: the tool makes them explicit rather than settling them.</li>
+      <li>Ignores harm to others, intensity of use and differences between products.</li>
+      <li>Prevalence defaults are rounded; check <a href="https://smokinginengland.info/">smokinginengland.info</a> for the latest figures.</li>
+    </ul>
+  </div>
+</div></section>
+
+<script>
+{
+const DIMS=[["death","Early death"],["ill","Chronic ill health"],["add","Addiction"],["cost","Cost"]];
+const SRC=[["a","Smokers switching completely","Exclusive smoking falls"],["b","Smokers adding vaping","Become dual users"],["c","Would have quit anyway","Vape instead of nothing"],["d","Never-smokers taking up vaping","New nicotine users"]];
+const PRESETS={
+ base:{w:{death:50,ill:30,add:10,cost:10},s:{death:100,ill:100,add:100,cost:100},du:{death:85,ill:90,add:100,cost:100},v:{death:5,ill:10,add:70,cost:30},ps:9.5,pd:4.3,pv:8.7,N:45,dv:2,a:20,b:33,c:20,d:27,g:10},
+ thr:{w:{death:50,ill:30,add:10,cost:10},s:{death:100,ill:100,add:100,cost:100},du:{death:75,ill:80,add:100,cost:100},v:{death:3,ill:5,add:60,cost:25},ps:9.5,pd:4.3,pv:8.7,N:45,dv:2,a:60,b:20,c:10,d:10,g:5},
+ sceptic:{w:{death:50,ill:30,add:10,cost:10},s:{death:100,ill:100,add:100,cost:100},du:{death:95,ill:100,add:100,cost:100},v:{death:30,ill:40,add:100,cost:40},ps:9.5,pd:4.3,pv:8.7,N:45,dv:2,a:15,b:25,c:20,d:40,g:30}
+};
+const $=id=>document.getElementById(id);
+let st;
+try{st=JSON.parse(localStorage.getItem("vnhm2"))}catch(e){st=null}
+if(!st||!st.w)st=structuredClone(PRESETS.base);
+
+$("harms").innerHTML=DIMS.map(([k,l])=>`<tr><td>${l}</td>`+["w","s","du","v"].map(g=>`<td><input type="number" id="${g}_${k}" data-g="${g}" data-k="${k}" min="0" max="100" step="1" aria-label="${l} ${g}"></td>`).join("")+`</tr>`).join("");
+$("prev").innerHTML=[["ps","Exclusive smoking","% of adults"],["pd","Dual use (smoke and vape)","% of adults"],["pv","Exclusive vaping","% of adults"],["N","Adult population","millions, approximate"]].map(([k,l,s])=>`<div class="row"><label for="${k}">${l}<small>${s}</small></label><input type="number" id="${k}" min="0" max="${k==="N"?100:60}" step="0.1"></div>`).join("");
+$("src").innerHTML=SRC.map(([k,l,s])=>`<div class="row"><label for="${k}">${l}<small>${s}</small></label><input type="number" id="${k}" min="0" max="100" step="1"></div>`).join("");
+
+const num=(v,d)=>{const x=parseFloat(v);return isFinite(x)?Math.max(0,x):d};
+function fill(){
+ for(const [k] of DIMS)for(const g of ["w","s","du","v"])$(`${g}_${k}`).value=st[g][k];
+ for(const k of ["ps","pd","pv","N","dv","a","b","c","d","g"])$(k).value=st[k];
+}
+function read(){
+ for(const [k] of DIMS)for(const g of ["w","s","du","v"])st[g][k]=Math.min(100,num($(`${g}_${k}`).value,0));
+ for(const k of ["ps","pd","pv","N","dv","a","b","c","d","g"])st[k]=num($(k).value,0);
+ st.g=Math.min(100,st.g);
+}
+function H(g,o){const w=st.w;let sw=0,t=0;for(const [k] of DIMS){sw+=w[k];t+=w[k]*(o&&o[k]!=null?o[k]:st[g][k])}return sw?t/sw:0}
+// net change in harm per unit rise in vaping (harm points), for switcher share a and fixed relative mix of others
+function model(Hs,Hd,Hv){
+ const tot=st.a+st.b+st.c+st.d||1, a=st.a/tot, b=st.b/tot, c=st.c/tot, d=st.d/tot, g=st.g/100;
+ const rest=b+c+d;
+ const K=rest?(b*(Hd-Hs)+c*Hv+d*((1-g)*Hv+g*Hd))/rest:0;
+ const per=x=>x*(Hv-Hs)+(1-x)*K;
+ const be=K<=0?0:(K+Hs-Hv>0?K/(K+Hs-Hv):null);
+ return {a,b,c,d,g,K,per,be};
+}
+const fmt=x=>{const ax=Math.abs(x);return ax>=1e6?(x/1e6).toFixed(2)+"m":ax>=1e3?Math.round(x/1e3).toLocaleString("en-GB")+"k":Math.round(x).toLocaleString("en-GB")};
+const pct=x=>x==null?"none":x===0?"any share":(x*100<1&&x>0?"<1":Math.round(x*100))+"%";
+
+function draw(){
+ const s=$("chart"),W=s.clientWidth,Ht=s.clientHeight;if(!W)return;
+ const Hs=H("s"),Hd=H("du"),Hv=H("v"),m=model(Hs,Hd,Hv),N=st.N*1e6,dv=st.dv/100;
+ const ys=[0,1].map(x=>m.per(x)*N*dv/100);
+ let lo=Math.min(0,...ys),hi=Math.max(0,...ys);if(hi-lo<1){hi+=1;lo-=1}
+ const pad=(hi-lo)*.12;lo-=pad;hi+=pad;
+ const L=W<520?54:72,R=16,T=18,B=44,x=v=>L+v*(W-L-R),y=v=>T+(hi-v)/(hi-lo)*(Ht-T-B);
+ let o=`<rect x="${L}" y="${y(0)}" width="${W-L-R}" height="${Math.max(0,y(lo)-y(0))}" fill="var(--emt)"/><rect x="${L}" y="${y(hi)}" width="${W-L-R}" height="${Math.max(0,y(0)-y(hi))}" fill="var(--roset)"/>`;
+ o+=`<text x="${W-R-6}" y="${y(hi)+16}" text-anchor="end" style="fill:var(--rose)">Net harm</text><text x="${W-R-6}" y="${y(lo)-8}" text-anchor="end" style="fill:var(--em)">Net benefit</text>`;
+ const ticks=W<520?[0,.5,1]:[0,.25,.5,.75,1];
+ o+=ticks.map(t=>`<line x1="${x(t)}" x2="${x(t)}" y1="${y(lo)}" y2="${y(lo)+5}" stroke="var(--mute)"/><text x="${x(t)}" y="${y(lo)+20}" text-anchor="middle">${t*100}%</text>`).join("");
+ o+=`<text x="${L+(W-L-R)/2}" y="${Ht-6}" text-anchor="middle" style="fill:var(--mute)">Share of new vapers who are smokers switching completely</text>`;
+ o+=`<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--ink)" stroke-width="1"/><text x="${L-6}" y="${y(0)+4}" text-anchor="end">0</text><text x="${L-6}" y="${y(hi)+12}" text-anchor="end">+${fmt(hi)}</text><text x="${L-6}" y="${y(lo)}" text-anchor="end">${fmt(lo)}</text>`;
+ o+=`<line x1="${x(0)}" y1="${y(ys[0])}" x2="${x(1)}" y2="${y(ys[1])}" stroke="var(--ink)" stroke-width="3"/>`;
+ if(m.be!=null&&m.be>0&&m.be<1){o+=`<line x1="${x(m.be)}" x2="${x(m.be)}" y1="${y(hi)}" y2="${y(lo)}" stroke="var(--ink)" stroke-dasharray="4 4"/><text x="${x(m.be)+6}" y="${y(0)-8}">break-even ${pct(m.be)}</text>`}
+ const yc=m.per(m.a)*N*dv/100;
+ o+=`<circle cx="${x(m.a)}" cy="${y(yc)}" r="7" fill="${yc<0?"var(--em)":"var(--rose)"}" stroke="var(--bg)" stroke-width="2"/><text x="${x(m.a)+(m.a>.7?-10:10)}" y="${y(yc)+(yc<0?-12:22)}" text-anchor="${m.a>.7?"end":"start"}">your scenario</text>`;
+ s.innerHTML=o;
+}
+const ro=new ResizeObserver(draw);ro.observe($("chart"));
+
+function render(){
+ read();try{localStorage.setItem("vnhm2",JSON.stringify(st))}catch(e){}
+ const Hs=H("s")||1,Hd=H("du"),Hv=H("v"),m=model(Hs,Hd,Hv),N=st.N*1e6,dv=st.dv/100;
+ const net=m.per(m.a)*N*dv/100;
+ const base={s:N*st.ps/100*Hs/100,d:N*st.pd/100*Hd/100,v:N*st.pv/100*Hv/100};
+ const ps2=st.ps-(m.a+m.b)*st.dv,pd2=st.pd+(m.b+m.d*m.g)*st.dv,pv2=st.pv+(m.a+m.c+m.d*(1-m.g))*st.dv;
+ const scen={s:N*ps2/100*Hs/100,d:N*pd2/100*Hd/100,v:N*pv2/100*Hv/100};
+ const good=net<0;
+ $("verdict").className="verdict"+(good?"":" bad");
+ $("vbig").textContent=(good?"−":"+")+fmt(Math.abs(net));
+ const dS=(m.a-m.d*m.g)*st.dv;
+ $("vtext").textContent=`smoking-equivalents: net ${good?"benefit":"harm"} if vaping rises by ${st.dv} points and ${pct(m.a)} of new vapers are smokers switching completely. Any smoking falls by ${dS.toFixed(2)} points.`;
+ $("kv").textContent=Math.round(Hv/Hs*100)+"%";
+ $("kd").textContent=Math.round(Hd/Hs*100)+"%";
+ $("kb").textContent=m.be==null?"never":pct(m.be);
+ $("chartcap").textContent=m.be==null?"With these settings, vaping does not break even at any share of switchers.":m.be===0?"With these settings, rising vaping is beneficial whatever share are switching smokers.":`Simplest case: each 1-point rise in vaping breaks even if exclusive smoking falls by ${(Hv/Hs).toFixed(2)} points. With your mix of other new vapers, at least ${pct(m.be)} of new vapers must be switching smokers.`;
+ const mx=Math.max(base.s+base.d+base.v,scen.s+scen.d+scen.v)||1;
+ const rows=[["Smoking",base.s,scen.s,"var(--smk)"],["Dual use",base.d,scen.d,"var(--rose)"],["Vaping",base.v,scen.v,"var(--em)"],["Total",base.s+base.d+base.v,scen.s+scen.d+scen.v,"var(--ink)"]];
+ $("bars").innerHTML=`<h2>Population harm, now and after the rise</h2><p class="hint">Smoking-equivalents. Upper bar now, lower bar in your scenario.</p>`+rows.map(([l,b,s,c])=>`<div class="bar"><span>${l}</span><div><div class="track"><div class="fill" style="width:${b/mx*100}%;background:${c};opacity:.45"></div></div><div class="track" style="margin-top:3px"><div class="fill" style="width:${s/mx*100}%;background:${c}"></div></div></div><span class="v">${fmt(b)}<br>${fmt(s)}</span></div>`).join("");
+ const tot=st.a+st.b+st.c+st.d;$("srcwarn").hidden=tot>0&&Math.abs(tot-100)<0.5;$("srcwarn").textContent=tot>0?`Shares total ${Math.round(tot)}%, so they have been rescaled to 100%.`:"Enter at least one share.";
+ $("sens").innerHTML=[2,5,10,20,40,60,80].map(r=>{const hv=Hs*r/100,mm=model(Hs,Hd,hv),n=mm.per(mm.a)*N*dv/100;return `<tr><td>${r}%</td><td>${mm.be==null?"never":pct(mm.be)}</td><td style="color:${n<0?"var(--em)":"var(--rose)"}">${n<0?"−":"+"}${fmt(Math.abs(n))}</td></tr>`}).join("");
+ draw();
+}
+document.querySelector("main").addEventListener("input",render);
+document.querySelectorAll("[data-p]").forEach(b=>b.addEventListener("click",()=>{st=structuredClone(PRESETS[b.dataset.p]);fill();render()}));
+fill();render();
+}
+</script>
+</body>
+</html>
